@@ -32,9 +32,10 @@ module GangstaWrap
       text.split(/\s+/).each do |word|
         w = StringScanner.new(word)
 
+        # For hyphenated words, follow each hyphen by a zero-width flagged
+        # penalty.
         # TODO: recognize dashes in all their variants
-        while seg = w.scan(/[^-]+-/)
-          # Each hyphen is followed by a zero-width flagged penalty.
+        while seg = w.scan(/[^-]+-/) # "night-time" --> "<<night->>time"
           stream << Box.new(@pdf.width_of(seg))
           stream << Penalty.new(50, 0, true)
         end
