@@ -1,3 +1,5 @@
+require 'strscan'
+
 module GangstaWrap
 
   # Ambassador to Prawn. Turns a paragraph into wrappable items.
@@ -28,7 +30,15 @@ module GangstaWrap
 
       # Break paragraph on whitespace.
       text.split(/\s+/).each do |word|
-        stream << Box.new(@pdf.width_of(word))
+        w = StringScanner.new(word)
+
+        while seg = w.scan(/[^-]+-/)
+          # Each hyphen is followed by a zero-width flagged penalty.
+          stream << Box.new(@pdf.width_of(seg))
+          stream << Penalty.new(50, 0, true)
+        end
+
+        stream << Box.new(@pdf.width_of(w.rest))
         stream << interword_glue
       end
 

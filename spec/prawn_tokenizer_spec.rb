@@ -47,4 +47,15 @@ describe "Prawn tokenizer" do
     end
   end
 
+  # (4)
+  it "should follow explicit hyphens with zero-width flagged penalties" do
+    stream = @tokenizer.paragraph("night-time")
+    stream.map{ |i| i.class }.should == [Box, Penalty, Box]
+    stream.first.width.should == @pdf.width_of("night-")
+
+    penalty = stream[1]
+    penalty.width.should.be.zero
+    penalty.should.be.flagged
+  end
+
 end
