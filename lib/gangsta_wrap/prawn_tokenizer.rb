@@ -32,6 +32,7 @@ module GangstaWrap
       text.split(/\s+/).each do |word|
         w = StringScanner.new(word)
 
+        # TODO: recognize dashes in all their variants
         while seg = w.scan(/[^-]+-/)
           # Each hyphen is followed by a zero-width flagged penalty.
           stream << Box.new(@pdf.width_of(seg))

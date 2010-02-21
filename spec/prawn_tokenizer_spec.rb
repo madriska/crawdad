@@ -4,7 +4,7 @@ describe "Prawn tokenizer" do
   include GangstaWrap
 
   before(:each) do
-    @pdf = Prawn::Document.new
+    @pdf = CachedWidthDocument
     @tokenizer = PrawnTokenizer.new(@pdf)
   end
 
