@@ -8,3 +8,8 @@ require "mocha"
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib') 
 require "gangsta_wrap"
 
+# for Prawn integration
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), 
+                             %w[.. vendor prawn-core lib])
+require 'prawn/core'
+

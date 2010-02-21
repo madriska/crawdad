@@ -10,4 +10,6 @@ require 'gangsta_wrap/box'
 require 'gangsta_wrap/glue'
 require 'gangsta_wrap/penalty'
 
+require 'gangsta_wrap/prawn_tokenizer'
+
 
