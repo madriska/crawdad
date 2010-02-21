@@ -39,6 +39,7 @@ describe "Prawn tokenizer" do
   # (3)
   it "should insert glue between words" do
     stream = @tokenizer.paragraph("this is a test.")
+    stream.pop(3) # remove finishing elements
     stream.map{ |i| i.class }.should == [Box, Glue, Box, Glue, Box, Glue, Box]
 
     interword_width = @pdf.width_of(" ")
@@ -50,12 +51,32 @@ describe "Prawn tokenizer" do
   # (4)
   it "should follow explicit hyphens with zero-width flagged penalties" do
     stream = @tokenizer.paragraph("night-time")
+    stream.pop(3) # remove finishing elements
     stream.map{ |i| i.class }.should == [Box, Penalty, Box]
     stream.first.width.should == @pdf.width_of("night-")
 
     penalty = stream[1]
     penalty.width.should.be.zero
     penalty.should.be.flagged
+  end
+
+  # (5)
+  it "should finish paragraphs with a disallowed break, finishing glue, and" +
+     "forced break" do
+    stream = @tokenizer.paragraph("foo bar baz")
+    disallowed_break, finishing_glue, forced_break = stream.pop(3)
+    
+    disallowed_break.should.be.a.kind_of(Penalty)
+    disallowed_break.penalty.should == Infinity
+
+    finishing_glue.should.be.a.kind_of(Glue)
+    finishing_glue.width.should.be.zero
+    finishing_glue.stretch.should == Infinity
+
+    forced_break.should.be.a.kind_of(Penalty)
+    forced_break.penalty.should == -Infinity
+    # check this, because we will break here for sure
+    forced_break.width.should.be.zero
   end
 
 end

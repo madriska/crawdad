@@ -46,6 +46,12 @@ module GangstaWrap
       # Remove extra glue at the end.
       stream.pop if stream.last == interword_glue
 
+      # Finish paragraph with a penalty inhibiting a break, finishing glue (to
+      # pad out the last line), and a forced break to finish the paragraph.
+      stream << Penalty.new(Infinity)
+      stream << Glue.new(0, Infinity, 0)
+      stream << Penalty.new(-Infinity)
+
       stream
     end
 
