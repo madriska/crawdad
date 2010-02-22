@@ -31,4 +31,8 @@ module GangstaWrap
 
   end
 
+  def penalty(penalty, width=0, flagged=false)
+    Penalty.new(penalty, width, flagged)
+  end
+
 end

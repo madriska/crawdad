@@ -16,4 +16,8 @@ module GangstaWrap
 
   end
 
+  def box(width)
+    Box.new(width)
+  end
+
 end

@@ -29,4 +29,8 @@ module GangstaWrap
 
   end
 
+  def glue(width, stretch, shrink)
+    Glue.new(width, stretch, shrink)
+  end
+
 end

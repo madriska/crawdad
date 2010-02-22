@@ -9,6 +9,8 @@ end
 require 'gangsta_wrap/box'
 require 'gangsta_wrap/glue'
 require 'gangsta_wrap/penalty'
+require 'gangsta_wrap/breakpoint'
+require 'gangsta_wrap/paragraph'
 
 require 'gangsta_wrap/prawn_tokenizer'
 
