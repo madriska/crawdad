@@ -2,9 +2,21 @@ module GangstaWrap
 
   class Paragraph
     
-    def initialize(stream)
+    def initialize(stream, options={})
       @stream = stream
+      @line_lengths = options[:line_widths]
+      @width = options[:width]
     end
+
+    # An optional array of line widths indexed by line number. Can be used to
+    # shape text as desired. Overrides +width+ if provided.
+    #
+    attr_accessor :line_widths
+
+    # Width of the paragraph of text. Can be overridden on a per-line basis with
+    # +line_widths+.
+    #
+    attr_accessor :width
 
     def optimum_breakpoints
       active = [Breakpoint.starting_node]
@@ -46,6 +58,52 @@ module GangstaWrap
           raise "Unknown item: #{item.inspect}"
         end
       end
+    end
+
+    # Calculates the adjustment ratio r by which a line from a to b would have
+    # to be adjusted to fit in the given length. r==0 means the natural widths
+    # are perfect. r==-1 means all of the shrinkability has been used; r==1
+    # means all of the stretchability has been used.
+    #
+    # Arguments:
+    # +node_a+:: 
+    #   Breakpoint node of our starting point (on the active list).
+    # +b+::
+    #   Index (into +stream+) of the breakpoint under consideration.
+    # +tw+::
+    #   Current value of total width at +b+. Passed into this method to avoid
+    #   recalculating widths for each call to this method.
+    # +ty+::
+    #   Current value of total stretch at +b+.
+    # +tz+::
+    #   Current value of total shrink at +b+.
+    #
+    def adjustment_ratio(node_a, b, tw, ty, tz)
+      item_b = @stream[b]
+      # Find the width from a to b.
+      width = tw - node_a.total_width
+      # Add penalty width (hyphen) if we are breaking at a penalty
+      width += item_b.width if Penalty === item_b
+      target_width = line_width(node_a.line + 1)
+
+      case
+      when width < target_width
+        stretch = ty - node_a.total_stretch
+        (stretch > 0) ? (target_width - width) / stretch.to_f : Infinity
+      when width > target_width
+        shrink = tz - node_a.total_shrink
+        (shrink > 0) ? (target_width - width) / shrink.to_f : Infinity
+      else 0
+      end
+    end
+
+    protected
+
+    # Returns the width of the given line number +l+.
+    #
+    def line_width(l)
+      (@line_widths && @line_widths[l]) || @width || 
+        raise("You must specify either line_widths or width")
     end
 
   end
