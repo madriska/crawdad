@@ -25,6 +25,9 @@ module GangstaWrap
     #
     attr_reader :width
 
+    # We try to avoid ending consecutive lines with flagged penalties. These
+    # are typically used after hyphens.
+    #
     def flagged?
       @flagged
     end
