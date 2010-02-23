@@ -39,7 +39,7 @@ module GangstaWrap
           j = a.line + 1 # current line
           r = adjustment_ratio(a, bi)
 
-          if r < -1 || (item.is_a?(Penalty) && item.penalty = -Infinity)
+          if r < -1 || (item.is_a?(Penalty) && item.penalty == -Infinity)
             active_nodes.delete(a)
           else
             preva = a

@@ -19,9 +19,11 @@ describe "each_legal_breakpoint" do
   it "should yield at legal breakpoints, with correct width/stretch/shrink" do
     breaks = []
     totals = []
-    @para.each_legal_breakpoint do |item, i, tw, ty, tz| 
+    @para.each_legal_breakpoint do |item, i|
       breaks << item
-      totals << [tw, ty, tz]
+      totals << [@para.instance_variable_get("@total_width"),
+                 @para.instance_variable_get("@total_stretch"),
+                 @para.instance_variable_get("@total_shrink")]
     end
     # These can be broken at the first glue or the first penalty. (Cannot break
     # at g4 because it is not preceded by a box.)
@@ -56,17 +58,20 @@ describe "adjustment_ratio" do
 
   it "should be zero for a perfect fit (no adjustment needed)" do
     @para.width = @tw
-    @para.adjustment_ratio(@start, 6, @tw, @ty, @tz).should.be.zero
+    @para.optimum_breakpoints
+    @para.adjustment_ratio(@start, 6).should.be.zero
   end
 
   it "should be positive when stretching, proportional to available stretch" do
     @para.width = @tw + (0.5 * @ty)
-    @para.adjustment_ratio(@start, 6, @tw, @ty, @tz).should == 0.5
+    @para.optimum_breakpoints
+    @para.adjustment_ratio(@start, 6).should == 0.5
   end
 
   it "should be negative when shrinking, proportional to available shrink" do
     @para.width = @tw - (0.5 * @tz)
-    @para.adjustment_ratio(@start, 6, @tw, @ty, @tz).should == -0.5
+    @para.optimum_breakpoints
+    @para.adjustment_ratio(@start, 6).should == -0.5
   end
 
 end
