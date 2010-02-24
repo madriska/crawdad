@@ -20,7 +20,7 @@ module GangstaWrap
     #
     attr_accessor :width
 
-    def optimum_breakpoints(threshold=1)
+    def optimum_breakpoints(threshold=2)
       active_nodes = [Breakpoint.starting_node]
       each_legal_breakpoint do |item, bi|
         # "Main Loop" (Digital Typography p. 118)
