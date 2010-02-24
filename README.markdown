@@ -48,9 +48,8 @@ http://www.bramstein.com/projects/typeset/
 * Ragged-right/left/center alignment.
 
 * The tokenizer could be smarter; it should recognize more than just
-  low-ASCII hyphens as hyphens / dashes; it should add more spacing after a
-  sentence-ending period; and it can get confused when whitespace and
-  hyphens interact.
+  low-ASCII hyphens as hyphens / dashes, and it can get confused when
+  whitespace and hyphens interact.
 
 * Automatically relax the thresholds when the constraints cannot be
   satisfied? Or we could look into TeX's two-pass method (pp. 121-122).

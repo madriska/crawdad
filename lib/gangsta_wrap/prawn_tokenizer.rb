@@ -35,10 +35,17 @@ module GangstaWrap
       end
 
       # Interword glue can stretch by half and shrink by a third.
+      # TODO: optimal stretch/shrink ratios
       space_width = @pdf.width_of(" ")
       interword_glue = Glue.new(space_width, 
                                 space_width / 2.0,
                                 space_width / 3.0)
+
+      # TODO: optimal values for sentence space w/y/z
+      sentence_space_width = space_width * 2.0
+      sentence_glue = Glue.new(sentence_space_width,
+                               sentence_space_width / 2.0,
+                               sentence_space_width / 3.0)
 
       # Break paragraph on whitespace.
       # TODO: how should "battle-\nfield" be tokenized?
@@ -56,7 +63,13 @@ module GangstaWrap
 
         stream << Box.new(@pdf.width_of(w.rest))
         box_content << w.rest
-        stream << interword_glue
+        # TODO: add ties (~) or some other way to denote a period that
+        # doesn't end a sentence.
+        if w.rest =~ /\.$/
+          stream << sentence_glue
+        else
+          stream << interword_glue
+        end
       end
 
       # Remove extra glue at the end.
