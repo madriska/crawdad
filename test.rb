@@ -21,5 +21,5 @@ END
 para = GangstaWrap::Paragraph.new(stream, :width => 200)
 
 para.optimum_breakpoints.each_cons(2) do |a, b|
-  puts $boxes_by_position[a.position...b.position].compact.join(" ")
+  puts "%6.03f %s" % [b.ratio, $boxes_by_position[a.position...b.position].compact.join(" ")]
 end

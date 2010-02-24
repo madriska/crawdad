@@ -59,7 +59,7 @@ module GangstaWrap
 
               # Update high scores if this is a new best.
               if best[c].nil? || d < best[c][:demerits]
-                best[c] = {:node => a, :demerits => d}
+                best[c] = {:node => a, :demerits => d, :ratio => r}
               end
             end
 
@@ -230,11 +230,12 @@ module GangstaWrap
       # If we found any best nodes, add them to the active list.
       best.each_with_index do |n, fitness_class|
         next if n.nil?
-        node, demerits = n[:node], n[:demerits]
+        node, demerits, ratio = n[:node], n[:demerits], n[:ratio]
         next if demerits == Infinity || demerits > lowest_demerits + gamma 
 
         new_nodes << Breakpoint.new(b, node.line + 1, fitness_class, new_width,
-                                    new_stretch, new_shrink, demerits, node)
+                                    new_stretch, new_shrink, demerits, ratio, 
+                                    node)
       end
 
       new_nodes
