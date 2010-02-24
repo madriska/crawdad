@@ -1,3 +1,10 @@
+# encoding: utf-8
+# GangstaWrap: Knuth-Plass linebreaking in Ruby.
+#
+# Copyright February 2010, Brad Ediger. All Rights Reserved.
+#
+# This is free software. Please see the LICENSE and COPYING files for details.
+
 require File.join(File.expand_path(File.dirname(__FILE__)), "spec_helper")
 
 describe "Prawn tokenizer" do

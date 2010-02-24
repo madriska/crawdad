@@ -1,6 +1,9 @@
 # encoding: utf-8
-
-# Gangsta Wrap: Knuth-Plass linebreaking implementation.
+# GangstaWrap: Knuth-Plass linebreaking in Ruby.
+#
+# Copyright February 2010, Brad Ediger. All Rights Reserved.
+#
+# This is free software. Please see the LICENSE and COPYING files for details.
 
 module GangstaWrap
   Infinity = 1.0/0

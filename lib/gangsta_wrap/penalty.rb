@@ -1,3 +1,10 @@
+# encoding: utf-8
+# GangstaWrap: Knuth-Plass linebreaking in Ruby.
+#
+# Copyright February 2010, Brad Ediger. All Rights Reserved.
+#
+# This is free software. Please see the LICENSE and COPYING files for details.
+
 module GangstaWrap
 
   # Represents a point at which the line of text can be broken.
