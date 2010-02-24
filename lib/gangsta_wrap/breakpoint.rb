@@ -9,13 +9,13 @@ module GangstaWrap
     #
     def self.starting_node
       new(position=0, line=0, fitness_class=1, total_width=0, total_stretch=0, 
-          total_shrink=0, total_demerits=0, previous=nil, link=nil)
+          total_shrink=0, total_demerits=0, previous=nil)
     end
 
     # Creates a breakpoint node with the given parameters.
     #
     def initialize(position, line, fitness_class, total_width, total_stretch,
-                   total_shrink, total_demerits, previous, link)
+                   total_shrink, total_demerits, previous)
       @position       = position
       @line           = line
       @fitness_class  = fitness_class
@@ -24,7 +24,6 @@ module GangstaWrap
       @total_shrink   = total_shrink
       @total_demerits = total_demerits
       @previous       = previous
-      @link           = link
     end
 
     # Index of this breakpoint within the sequence of items.
@@ -59,11 +58,6 @@ module GangstaWrap
     # Link to the best preceding breakpoint.
     #
     attr_reader :previous
-
-    # Link to the next node in the list.
-    #
-    attr_reader :link
-
 
   end
 

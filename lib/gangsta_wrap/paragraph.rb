@@ -23,62 +23,90 @@ module GangstaWrap
     def optimum_breakpoints(threshold=1)
       active_nodes = [Breakpoint.starting_node]
       each_legal_breakpoint do |item, bi|
+        # "Main Loop" (Digital Typography p. 118)
 
-        # For each fitness class, the best demerits we've seen so far, and the
-        # active nodes that led us there.
-        demerits = [Infinity] * 4
-        best_nodes = [nil] * 4
-
-        preva = nil
+        # For each fitness class, keep track of the nodes with the fewest
+        # demerits so far.
+        best = [nil] * 4
 
         if active_nodes.empty?
           raise "No feasible solution. Try relaxing threshold."
         end
 
-        active_nodes.each_with_index do |a, ai|
-          j = a.line + 1 # current line
-          r = adjustment_ratio(a, bi)
+        insert_position = catch(:end_of_line) do
+          active_nodes.each_with_index do |a, ai|
+            j = a.line + 1 # current line
+            r = adjustment_ratio(a, bi)
 
-          if r < -1 || (item.is_a?(Penalty) && item.penalty == -Infinity)
-            active_nodes.delete(a)
-          else
-            preva = a
-          end
-
-          if r >= -1 && r <= threshold
-            d = calculate_demerits(r, item, a) + a.total_demerits
-            c = fitness_class(r)
-
-            # Penalize consecutive lines more than one fitness class away from
-            # each other.
-            if (c - a.fitness_class).abs > 1
-              d += @fitness_penalty
+            if r < -1 || (item.is_a?(Penalty) && item.penalty == -Infinity)
+              active_nodes.delete(a)
             end
 
-            # Update high scores if this is a new best.
-            if d < demerits[c]
-              demerits[c] = d
-              best_nodes[c] = a
+            if r >= -1 && r <= threshold
+              d = calculate_demerits(r, item, a) + a.total_demerits
+              c = fitness_class(r)
+
+              # Penalize consecutive lines more than one fitness class away from
+              # each other.
+              if (c - a.fitness_class).abs > 1
+                d += @fitness_penalty
+              end
+
+              # Update high scores if this is a new best.
+              if best[c].nil? || d < best[c][:demerits]
+                best[c] = {:node => a, :demerits => d}
+              end
+            end
+
+            # Stop to add nodes to the active list before moving to the next
+            # line.
+            if (next_node = active_nodes[ai+1]) && next_node.line >= j
+              throw :end_of_line, ai
             end
           end
 
-          break if (next_node = active_nodes[ai+1]) && next_node.line >= j
+          # If :end_of_line isn't thrown, we are adding active nodes to the end
+          # of the active list (insert_position == active_nodes.length).
+          active_nodes.length
         end
-        
+
+        gamma = 100 # XXX: find optimal value for the dominance test
+        lowest_demerits = best.compact.map { |n| n[:demerits] }.min
+        new_width, new_stretch, new_shrink = calculate_widths(bi)
+
         # If we found any best nodes, add them to the active list.
-        if demerits.min < Infinity
-          # TODO
+        best.each_with_index do |n, fitness_class|
+          next if n.nil?
+          node, demerits = n[:node], n[:demerits]
+          next if demerits == Infinity || demerits > lowest_demerits + gamma 
+
+          new_node = Breakpoint.new(position=bi, line=node.line + 1, 
+                       fitness_class, new_width, new_stretch, new_shrink, 
+                       total_demerits=demerits, previous=node)
+          active_nodes.insert(insert_position, new_node)
         end
 
       end
+
+      # TODO: rest of the algorithm
+      active_nodes
     end
 
-    # For each item before which we could break, yields five values:
+    # For each item before which we could break, yields two values:
     #
     # +item+::
     #   The item we can break before (glue or penalty).
     # +i+::
     #   The index of +item+ in the stream.
+    #
+    # Updates the @total_width, @total_stretch, and @total_shrink variables as
+    # it moves over the stream, to allow quick calculation of the
+    # width/stretch/shrink from the last breakpoint node.
+    #
+    # Legal breakpoints are either:
+    # 
+    # * glue immediately following a box, or
+    # * a penalty less than positive infinity.
     #
     def each_legal_breakpoint
       @total_width   = 0
@@ -99,7 +127,7 @@ module GangstaWrap
           # We can break here unless inhibited by an infinite penalty.
           yield(item, i) unless item.penalty == Infinity
         else
-          raise "Unknown item: #{item.inspect}"
+          raise ArgumentError, "Unknown item: #{item.inspect}"
         end
       end
     end
@@ -177,6 +205,33 @@ module GangstaWrap
       when r <  1   then 2
       else               3
       end
+    end
+
+    # Compute (\sum w)_{after(b)}, et al. -- total width, stretch, shrink from
+    # the active breakpoint to the next box or forced break.
+    #
+    # Last algorithm on p. 119 of Digital Typography.
+    #
+    def calculate_widths(b)
+      total_width, total_stretch, total_shrink = 
+        @total_width, @total_stretch, @total_shrink
+      
+      @stream[b..-1].each_with_index do |item, i|
+        case item
+        when Box
+          break
+        when Glue
+          total_width   += item.width
+          total_stretch += item.stretch
+          total_shrink  += item.shrink
+        when Penalty
+          break if item.penalty == -Infinity && i > 0
+        else
+          raise ArgumentError, "Unknown item: #{item.inspect}"
+        end
+      end
+
+      [total_width, total_stretch, total_shrink]
     end
 
   end

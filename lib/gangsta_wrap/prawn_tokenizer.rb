@@ -17,9 +17,11 @@ module GangstaWrap
     #
     def paragraph(text, options={})
       stream = []
+      box_content = []
 
       if w = options[:indent]
         stream << Box.new(w)
+        box_content << ""
       end
 
       # Interword glue can stretch by half and shrink by a third.
@@ -29,6 +31,7 @@ module GangstaWrap
                                 space_width / 3.0)
 
       # Break paragraph on whitespace.
+      # TODO: how should "battle-\nfield" be tokenized?
       text.split(/\s+/).each do |word|
         w = StringScanner.new(word)
 
@@ -37,10 +40,12 @@ module GangstaWrap
         # TODO: recognize dashes in all their variants
         while seg = w.scan(/[^-]+-/) # "night-time" --> "<<night->>time"
           stream << Box.new(@pdf.width_of(seg))
+          box_content << seg
           stream << Penalty.new(50, 0, true)
         end
 
         stream << Box.new(@pdf.width_of(w.rest))
+        box_content << w.rest
         stream << interword_glue
       end
 
@@ -53,7 +58,7 @@ module GangstaWrap
       stream << Glue.new(0, Infinity, 0)
       stream << Penalty.new(-Infinity)
 
-      stream
+      [stream, box_content]
     end
 
   end
