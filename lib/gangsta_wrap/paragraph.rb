@@ -179,8 +179,6 @@ module GangstaWrap
         raise("You must specify either line_widths or width")
     end
 
-    FlaggedPenaltyCharge = 100
-
     # Returns the demerits assessed to a break before +new_item+ with adjustment
     # ratio +r+, given the provided active breakpoint.
     #
