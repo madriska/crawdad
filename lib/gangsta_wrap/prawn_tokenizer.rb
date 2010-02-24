@@ -37,7 +37,7 @@ module GangstaWrap
 
       # Break paragraph on whitespace.
       # TODO: how should "battle-\nfield" be tokenized?
-      text.split(/\s+/).each do |word|
+      text.strip.split(/\s+/).each do |word|
         w = StringScanner.new(word)
 
         # For hyphenated words, follow each hyphen by a zero-width flagged
