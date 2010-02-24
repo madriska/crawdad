@@ -4,7 +4,7 @@ module GangstaWrap
     
     def initialize(stream, options={})
       @stream = stream
-      @line_lengths = options[:line_widths]
+      @line_widths = options[:line_widths]
       @width = options[:width]
       @flagged_penalty = options[:flagged_penalty] || 3000
       @fitness_penalty = options[:fitness_penalty] || 100
