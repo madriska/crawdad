@@ -70,22 +70,8 @@ module GangstaWrap
           active_nodes.length
         end
 
-        gamma = 100 # XXX: find optimal value for the dominance test
-        lowest_demerits = best.compact.map { |n| n[:demerits] }.min
-        new_width, new_stretch, new_shrink = calculate_widths(bi)
-
         # If we found any best nodes, add them to the active list.
-        best.each_with_index do |n, fitness_class|
-          next if n.nil?
-          node, demerits = n[:node], n[:demerits]
-          next if demerits == Infinity || demerits > lowest_demerits + gamma 
-
-          new_node = Breakpoint.new(position=bi, line=node.line + 1, 
-                       fitness_class, new_width, new_stretch, new_shrink, 
-                       total_demerits=demerits, previous=node)
-          active_nodes.insert(insert_position, new_node)
-        end
-
+        insert_new_active_nodes(active_nodes, best, bi, insert_position)
       end
 
       # TODO: rest of the algorithm
@@ -207,6 +193,44 @@ module GangstaWrap
       end
     end
 
+    # Inserts new active nodes for breaks from all "best" breakpoints +best+
+    # (lowest demerits within each fitness class) to +b+ (index of the current
+    # item in the stream). Inserts them into the +active_nodes+ array before
+    # the item indexed +position+.
+    #
+    # The +gamma+ value is used in an optional dominance test; candidate breaks
+    # must do better than the optimum fitness class by +gamma+ demerits to be
+    # considered.
+    #
+    # TODO: find optimal value for gamma
+    #
+    # This is the middle algorithm ("Insert new active nodes for breaks from Ac
+    # to b") on p. 119 of Digital Typography.
+    #
+    def insert_new_active_nodes(active_nodes, best, b, 
+                                position=active_nodes.length, gamma=Infinity)
+
+      lowest_demerits = best.compact.map { |n| n[:demerits] }.min
+      new_width, new_stretch, new_shrink = calculate_widths(b)
+
+      # If we found any best nodes, add them to the active list.
+      best.each_with_index do |n, fitness_class|
+        next if n.nil?
+        node, demerits = n[:node], n[:demerits]
+        next if demerits == Infinity || demerits > lowest_demerits + gamma 
+
+        new_node = Breakpoint.new(b, node.line + 1, fitness_class, new_width,
+                                  new_stretch, new_shrink, demerits, node)
+
+        # TODO: remove below debugging line
+        puts "#{node.line}: #{$boxes_by_position[node.position..b].compact.join(" ")}"
+
+        active_nodes.insert(position, new_node)
+        position += 1 # to insert subsequent items after me
+      end
+
+    end
+
     # Compute (\sum w)_{after(b)}, et al. -- total width, stretch, shrink from
     # the active breakpoint to the next box or forced break.
     #
@@ -233,6 +257,7 @@ module GangstaWrap
 
       [total_width, total_stretch, total_shrink]
     end
+
 
   end
 
