@@ -15,6 +15,9 @@ module GangstaWrap
     # Tokenize the given paragraph of text into a stream of items (boxes, glue,
     # and penalties).
     #
+    # Returns [stream, box_content], where +box_content+ is an Array containing
+    # the content for each Box that appears in +stream+, in turn.
+    #
     def paragraph(text, options={})
       stream = []
       box_content = []
