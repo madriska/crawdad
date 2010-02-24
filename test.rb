@@ -20,7 +20,6 @@ END
 
 para = GangstaWrap::Paragraph.new(stream, :width => 200)
 
-puts "Stream length: #{stream.length}"
-puts "Active positions: #{para.optimum_breakpoints.map{|x| x.position}}"
-
-puts "Box content: #{box_content.inspect}"
+para.optimum_breakpoints.each_cons(2) do |a, b|
+  puts $boxes_by_position[a.position...b.position].compact.join(" ")
+end

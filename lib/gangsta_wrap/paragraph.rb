@@ -23,7 +23,6 @@ module GangstaWrap
     def optimum_breakpoints(threshold=5)
       active_nodes = [Breakpoint.starting_node]
       each_legal_breakpoint do |item, bi|
-        puts "bi: #{bi}; active_nodes: #{active_nodes.map{|x|x.position}.inspect}"
         # "Main Loop" (Digital Typography p. 118)
 
         if active_nodes.empty?
@@ -41,7 +40,8 @@ module GangstaWrap
             j = a.line + 1 # current line
             r = adjustment_ratio(a, bi)
 
-            if r < -1 || (item.is_a?(Penalty) && item.penalty == -Infinity)
+            if r < -1 || (item.is_a?(Penalty) && item.penalty == -Infinity && 
+                          a.position < @stream.length - 1)
               active_nodes.delete(a)
             else
               ai += 1
@@ -79,8 +79,18 @@ module GangstaWrap
 
       end
 
-      # TODO: rest of the algorithm
-      active_nodes
+      # At this point, everything in active_nodes should point to the final
+      # element of our stream (the forced break). Now we pick the one with the
+      # fewest total demerits.
+      
+      node = active_nodes.sort_by { |n| n.total_demerits }.first
+
+      nodes = []
+      begin
+        nodes.unshift(node)
+      end while node = node.previous
+
+      nodes
     end
 
     # For each item before which we could break, yields two values:
@@ -225,9 +235,6 @@ module GangstaWrap
 
         new_nodes << Breakpoint.new(b, node.line + 1, fitness_class, new_width,
                                     new_stretch, new_shrink, demerits, node)
-
-        # TODO: remove below debugging line
-        puts "#{node.line}: #{$boxes_by_position[node.position..b].compact.join(" ")} (#{b})"
       end
 
       new_nodes
