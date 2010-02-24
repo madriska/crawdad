@@ -21,12 +21,10 @@ module GangstaWrap
     def paragraph(text, options={})
       stream = []
       box_content = []
-      $boxes_by_position = []
 
       if w = options[:indent]
         stream << Box.new(w)
         box_content << ""
-        $boxes_by_position[stream.length - 1] = ""
       end
 
       # Interword glue can stretch by half and shrink by a third.
@@ -46,13 +44,11 @@ module GangstaWrap
         while seg = w.scan(/[^-]+-/) # "night-time" --> "<<night->>time"
           stream << Box.new(@pdf.width_of(seg))
           box_content << seg
-          $boxes_by_position[stream.length - 1] = seg
           stream << Penalty.new(50, 0, true)
         end
 
         stream << Box.new(@pdf.width_of(w.rest))
         box_content << w.rest
-        $boxes_by_position[stream.length - 1] = w.rest
         stream << interword_glue
       end
 
