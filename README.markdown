@@ -32,6 +32,9 @@ http://www.bramstein.com/projects/typeset/
   the user. Survey other software (TeX?) to harvest good starting values for
   these parameters.
 
+* Fix the demerits calculation to the TeX "improved" formula (Digital
+  Typography p. 154). Thanks to Bram Stein for pointing this out.
+
 * Implement the looseness parameter q (algorithm "Choose the appropriate
   active node", Digital Typography p. 120).
 
@@ -42,8 +45,7 @@ http://www.bramstein.com/projects/typeset/
 
 * Bring this into Prawn, and integrate (if possible) with the Text::Box API.
 
-* We don't hyphenate yet. That's another project altogether, but it won't be
-  difficult to integrate.
+* Ragged-right/left/center alignment.
 
 * The tokenizer could be smarter; it should recognize more than just
   low-ASCII hyphens as hyphens / dashes; it should add more spacing after a
@@ -52,6 +54,9 @@ http://www.bramstein.com/projects/typeset/
 
 * Automatically relax the thresholds when the constraints cannot be
   satisfied? Or we could look into TeX's two-pass method (pp. 121-122).
+
+* We don't hyphenate yet. That's another project altogether, but it won't be
+  difficult to integrate.
 
 ## Acknowledgements
 
