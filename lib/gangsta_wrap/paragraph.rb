@@ -20,26 +20,31 @@ module GangstaWrap
     #
     attr_accessor :width
 
-    def optimum_breakpoints(threshold=2)
+    def optimum_breakpoints(threshold=5)
       active_nodes = [Breakpoint.starting_node]
       each_legal_breakpoint do |item, bi|
+        puts "bi: #{bi}; active_nodes: #{active_nodes.map{|x|x.position}.inspect}"
         # "Main Loop" (Digital Typography p. 118)
-
-        # For each fitness class, keep track of the nodes with the fewest
-        # demerits so far.
-        best = [nil] * 4
 
         if active_nodes.empty?
           raise "No feasible solution. Try relaxing threshold."
         end
 
-        insert_position = catch(:end_of_line) do
-          active_nodes.each_with_index do |a, ai|
+        ai = 0
+
+        while active_nodes[ai]
+          # For each fitness class, keep track of the nodes with the fewest
+          # demerits so far.
+          best = [nil] * 4
+
+          while a = active_nodes[ai]
             j = a.line + 1 # current line
             r = adjustment_ratio(a, bi)
 
             if r < -1 || (item.is_a?(Penalty) && item.penalty == -Infinity)
               active_nodes.delete(a)
+            else
+              ai += 1
             end
 
             if r >= -1 && r <= threshold
@@ -58,20 +63,20 @@ module GangstaWrap
               end
             end
 
-            # Stop to add nodes to the active list before moving to the next
-            # line.
-            if (next_node = active_nodes[ai+1]) && next_node.line >= j
-              throw :end_of_line, ai
+            # Add nodes to the active list before moving to the next line.
+            if (next_node = active_nodes[ai]) && next_node.line >= j
+              break
             end
           end
 
-          # If :end_of_line isn't thrown, we are adding active nodes to the end
-          # of the active list (insert_position == active_nodes.length).
-          active_nodes.length
+          # If we found any best nodes, add them to the active list.
+          if ai && ai < active_nodes.length - 1
+            active_nodes[ai, 0] = new_active_nodes(best, bi)
+          else
+            active_nodes.concat new_active_nodes(best, bi)
+          end
         end
 
-        # If we found any best nodes, add them to the active list.
-        insert_new_active_nodes(active_nodes, best, bi, insert_position)
       end
 
       # TODO: rest of the algorithm
@@ -193,10 +198,9 @@ module GangstaWrap
       end
     end
 
-    # Inserts new active nodes for breaks from all "best" breakpoints +best+
+    # Returns new active nodes for breaks from all "best" breakpoints +best+
     # (lowest demerits within each fitness class) to +b+ (index of the current
-    # item in the stream). Inserts them into the +active_nodes+ array before
-    # the item indexed +position+.
+    # item in the stream). 
     #
     # The +gamma+ value is used in an optional dominance test; candidate breaks
     # must do better than the optimum fitness class by +gamma+ demerits to be
@@ -207,11 +211,11 @@ module GangstaWrap
     # This is the middle algorithm ("Insert new active nodes for breaks from Ac
     # to b") on p. 119 of Digital Typography.
     #
-    def insert_new_active_nodes(active_nodes, best, b, 
-                                position=active_nodes.length, gamma=Infinity)
-
+    def new_active_nodes(best, b, gamma=Infinity)
       lowest_demerits = best.compact.map { |n| n[:demerits] }.min
       new_width, new_stretch, new_shrink = calculate_widths(b)
+
+      new_nodes = []
 
       # If we found any best nodes, add them to the active list.
       best.each_with_index do |n, fitness_class|
@@ -219,16 +223,14 @@ module GangstaWrap
         node, demerits = n[:node], n[:demerits]
         next if demerits == Infinity || demerits > lowest_demerits + gamma 
 
-        new_node = Breakpoint.new(b, node.line + 1, fitness_class, new_width,
-                                  new_stretch, new_shrink, demerits, node)
+        new_nodes << Breakpoint.new(b, node.line + 1, fitness_class, new_width,
+                                    new_stretch, new_shrink, demerits, node)
 
         # TODO: remove below debugging line
-        puts "#{node.line}: #{$boxes_by_position[node.position..b].compact.join(" ")}"
-
-        active_nodes.insert(position, new_node)
-        position += 1 # to insert subsequent items after me
+        puts "#{node.line}: #{$boxes_by_position[node.position..b].compact.join(" ")} (#{b})"
       end
 
+      new_nodes
     end
 
     # Compute (\sum w)_{after(b)}, et al. -- total width, stretch, shrink from
