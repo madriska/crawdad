@@ -73,7 +73,7 @@ module GangstaWrap
       end
 
       # Remove extra glue at the end.
-      stream.pop if stream.last == interword_glue
+      stream.pop if Glue === stream.last
 
       # Finish paragraph with a penalty inhibiting a break, finishing glue (to
       # pad out the last line), and a forced break to finish the paragraph.
