@@ -1,6 +1,6 @@
-# GangstaWrap: Knuth-Plass linebreaking for Ruby
+# Crawdad: Knuth-Plass linebreaking for Ruby
 
-GangstaWrap is a basic implementation of the Knuth-Plass linebreaking
+Crawdad is a basic implementation of the Knuth-Plass linebreaking
 algorithm for breaking paragraphs of text into lines. It uses a total-fit
 method to ensure consistency across the entire paragraph at once. The
 algorithm is a simplified version of the one used in the TeX typesetting
@@ -67,6 +67,6 @@ Thanks are due to the following individuals:
 
 ## License
 
-GangstaWrap is copyrighted free software, written by Brad Ediger. See the
+Crawdad is copyrighted free software, written by Brad Ediger. See the
 LICENSE file for details.
 
