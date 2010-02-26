@@ -30,19 +30,18 @@ Prawn::Document.generate("gettysburg_shaped.pdf") do |pdf|
   para = Crawdad::Paragraph.new(stream, 
            :line_widths => (0..40).map{|x| 200 + 10*x})
 
-  para.optimum_breakpoints.each_cons(2) do |a, b|
+  para.lines.each do |tokens, breakpoint|
     # skip over glue and penalties at the beginning of each line
-    start = a.position
-    start += 1 until Crawdad::Box === stream[start]
+    tokens.shift until Crawdad::Box === tokens.first
 
     x = 48
-    stream[start...b.position].each do |token|
+    tokens.each do |token|
       case token
       when Crawdad::Box
         pdf.draw_text!(token.content, :at => [x, pdf.cursor])
         x += token.width
       when Crawdad::Glue
-        r = b.ratio
+        r = breakpoint.ratio
         w = case
              when r > 0
                token.width + (r * token.stretch)
@@ -55,7 +54,7 @@ Prawn::Document.generate("gettysburg_shaped.pdf") do |pdf|
         # TODO: add a hyphen when we break at a flagged penalty
       end
     end
-    pdf.draw_text("%6.03f" % b.ratio, :at => [0, pdf.cursor])
+    pdf.draw_text("%6.03f" % breakpoint.ratio, :at => [0, pdf.cursor])
     
     pdf.move_down(line_spacing)
   end

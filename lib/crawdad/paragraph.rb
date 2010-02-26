@@ -27,6 +27,19 @@ module Crawdad
     #
     attr_accessor :width
 
+    # Returns an array of optimally sized lines. Each line in the array consists
+    # of two elements [tokens, breakpoint]. +tokens+ is an array of tokens taken
+    # sequentially from the input stream. +breakpoint+ is a Crawdad::Breakpoint
+    # object representing data about the line (primarily the adjustment ratio).
+    #
+    def lines(threshold=5)
+      ls = []
+      optimum_breakpoints(threshold).each_cons(2) do |a, b|
+        ls << [@stream[a.position...b.position], b]
+      end
+      ls
+    end
+
     def optimum_breakpoints(threshold=5)
       active_nodes = [Breakpoint.starting_node]
       each_legal_breakpoint do |item, bi|
