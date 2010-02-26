@@ -1,11 +1,11 @@
 # encoding: utf-8
-# GangstaWrap: Knuth-Plass linebreaking in Ruby.
+# Crawdad: Knuth-Plass linebreaking in Ruby.
 #
 # Copyright February 2010, Brad Ediger. All Rights Reserved.
 #
 # This is free software. Please see the LICENSE and COPYING files for details.
 
-module GangstaWrap
+module Crawdad
 
   # Glue is a variable-width amount of white space between words on a line. It
   # is specified by a given ideal width, plus stretchability and shrinkability

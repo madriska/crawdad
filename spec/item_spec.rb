@@ -1,5 +1,5 @@
 # encoding: utf-8
-# GangstaWrap: Knuth-Plass linebreaking in Ruby.
+# Crawdad: Knuth-Plass linebreaking in Ruby.
 #
 # Copyright February 2010, Brad Ediger. All Rights Reserved.
 #

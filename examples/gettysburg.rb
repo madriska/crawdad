@@ -1,12 +1,12 @@
 # encoding: utf-8
-# GangstaWrap: Knuth-Plass linebreaking in Ruby.
+# Crawdad: Knuth-Plass linebreaking in Ruby.
 #
 # Copyright February 2010, Brad Ediger. All Rights Reserved.
 #
 # This is free software. Please see the LICENSE and COPYING files for details.
 
 $:.unshift 'lib'
-require 'gangsta_wrap'
+require 'crawdad'
 
 $:.unshift 'vendor/prawn/lib'
 require 'prawn'
@@ -14,7 +14,7 @@ require 'prawn'
 Prawn::Document.generate("gettysburg.pdf") do |pdf|
   line_spacing = pdf.font.height
 
-  stream = GangstaWrap::PrawnTokenizer.new(pdf).paragraph(<<-END)
+  stream = Crawdad::PrawnTokenizer.new(pdf).paragraph(<<-END)
   Fourscore and seven years ago our fathers brought forth
   on this continent a new nation, conceived in liberty, and
   dedicated to the proposition that all men are created equal.
@@ -28,20 +28,20 @@ Prawn::Document.generate("gettysburg.pdf") do |pdf|
   END
 
   [200, 300, 400, 450].each do |width|
-    para = GangstaWrap::Paragraph.new(stream, :width => width)
+    para = Crawdad::Paragraph.new(stream, :width => width)
 
     para.optimum_breakpoints.each_cons(2) do |a, b|
       # skip over glue and penalties at the beginning of each line
       start = a.position
-      start += 1 until GangstaWrap::Box === stream[start]
+      start += 1 until Crawdad::Box === stream[start]
 
       x = 0
       stream[start...b.position].each do |token|
         case token
-        when GangstaWrap::Box
+        when Crawdad::Box
           pdf.draw_text!(token.content, :at => [x, pdf.cursor])
           x += token.width
-        when GangstaWrap::Glue
+        when Crawdad::Glue
           r = b.ratio
           w = case
                when r > 0
@@ -51,7 +51,7 @@ Prawn::Document.generate("gettysburg.pdf") do |pdf|
                else token.width
                end
           x += w
-        when GangstaWrap::Penalty
+        when Crawdad::Penalty
           # TODO: add a hyphen when we break at a flagged penalty
         end
       end

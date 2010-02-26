@@ -1,5 +1,5 @@
 # encoding: utf-8
-# GangstaWrap: Knuth-Plass linebreaking in Ruby.
+# Crawdad: Knuth-Plass linebreaking in Ruby.
 #
 # Copyright February 2010, Brad Ediger. All Rights Reserved.
 #
@@ -11,10 +11,10 @@ require "rubygems"
 require "test/spec"                                                
 require "mocha"
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib') 
-require "gangsta_wrap"
+require "crawdad"
 
 # laziness for test/spec on 1.8
-include GangstaWrap
+include Crawdad
 
 # for Prawn integration
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), 

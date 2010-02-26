@@ -17,6 +17,6 @@ Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_files.include("README", "lib/")
   rdoc.main     = "README"
   rdoc.rdoc_dir = "doc/html"
-  rdoc.title    = "GangstaWrap Documentation"
+  rdoc.title    = "Crawdad Documentation"
 end     
 
