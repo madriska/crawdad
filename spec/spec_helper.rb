@@ -13,10 +13,13 @@ require "mocha"
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib') 
 require "gangsta_wrap"
 
+# laziness for test/spec on 1.8
+include GangstaWrap
+
 # for Prawn integration
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), 
                              %w[.. vendor prawn-core lib])
-require 'prawn/core'
+require 'prawn'
 
 # A fast instance of Prawn::Document used only for width calculations. We
 # memoize the width_of method.

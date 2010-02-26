@@ -32,11 +32,11 @@ Prawn::Document.generate("gettysburg_shaped.pdf") do |pdf|
 
   para.optimum_breakpoints.each_cons(2) do |a, b|
     # skip over glue and penalties at the beginning of each line
-    first_box = a.position + 
-      stream[a.position...b.position].index{|x| GangstaWrap::Box === x}
+    start = a.position
+    start += 1 until GangstaWrap::Box === stream[start]
 
     x = 48
-    stream[first_box...b.position].each do |token|
+    stream[start...b.position].each do |token|
       case token
       when GangstaWrap::Box
         pdf.draw_text!(token.content, :at => [x, pdf.cursor])

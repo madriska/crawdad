@@ -8,7 +8,6 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), "spec_helper")
 
 describe "each_legal_breakpoint" do
-  include GangstaWrap
 
   before(:each) do
     @stream = [
@@ -41,7 +40,6 @@ describe "each_legal_breakpoint" do
 end
 
 describe "adjustment_ratio" do
-  include GangstaWrap
 
   before(:each) do
     @stream = [

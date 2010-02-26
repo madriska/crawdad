@@ -8,7 +8,6 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), "spec_helper")
 
 describe "Prawn tokenizer" do
-  include GangstaWrap
 
   before(:each) do
     @pdf = CachedWidthDocument
@@ -54,7 +53,7 @@ describe "Prawn tokenizer" do
   # (3)
   it "should insert glue between words" do
     stream = @tokenizer.paragraph("this is a test.")
-    stream.pop(3) # remove finishing elements
+    3.times{ stream.pop } # remove finishing elements
     stream.map{ |i| i.class }.should == [Box, Glue, Box, Glue, Box, Glue, Box]
 
     interword_width = @pdf.width_of(" ")
@@ -66,7 +65,7 @@ describe "Prawn tokenizer" do
   # (4)
   it "should follow explicit hyphens with zero-width flagged penalties" do
     stream = @tokenizer.paragraph("cul-de-sac")
-    stream.pop(3) # remove finishing elements
+    3.times{ stream.pop } # remove finishing elements
     stream.map{ |i| i.class }.should == [Box, Penalty, Box, Penalty, Box]
 
     # check boxes
@@ -87,7 +86,9 @@ describe "Prawn tokenizer" do
   it "should finish paragraphs with a disallowed break, finishing glue, and" +
      "forced break" do
     stream = @tokenizer.paragraph("foo bar baz")
-    disallowed_break, finishing_glue, forced_break = stream.pop(3)
+    forced_break = stream.pop
+    finishing_glue = stream.pop
+    disallowed_break = stream.pop
     
     disallowed_break.should.be.a.kind_of(Penalty)
     disallowed_break.penalty.should == Infinity

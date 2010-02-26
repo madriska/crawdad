@@ -25,9 +25,6 @@ http://www.bramstein.com/projects/typeset/
 * The Prawn drawing interface needs to be moved out of user code and into
   the library itself.
 
-* Support Ruby 1.8.6. Currently, out of laziness I am using some 1.9-only
-  features like automatic enumerators from Enumerable#each.
-
 * Collect all of our constants and magic numbers and expose them somewhat to
   the user. Survey other software (TeX?) to harvest good starting values for
   these parameters.

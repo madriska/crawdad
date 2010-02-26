@@ -8,7 +8,6 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), "spec_helper")
 
 describe "All items" do
-  include GangstaWrap
 
   it "should have a width" do
     box     = Box.new(12, '')
@@ -27,7 +26,6 @@ describe "Boxes" do
 end
 
 describe "Glue" do
-  include GangstaWrap
 
   it "should have stretchability and shrinkability" do
     g = Glue.new(12, 5, 6)
@@ -39,7 +37,6 @@ describe "Glue" do
 end
 
 describe "Penalties" do
-  include GangstaWrap
 
   it "should accept penalty, width, and flagged arguments" do
     p = Penalty.new(5, 10, true)
