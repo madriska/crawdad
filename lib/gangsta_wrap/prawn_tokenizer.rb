@@ -22,16 +22,11 @@ module GangstaWrap
     # Tokenize the given paragraph of text into a stream of items (boxes, glue,
     # and penalties).
     #
-    # Returns [stream, box_content], where +box_content+ is an Array containing
-    # the content for each Box that appears in +stream+, in turn.
-    #
     def paragraph(text, options={})
       stream = []
-      box_content = []
 
       if w = options[:indent]
-        stream << Box.new(w)
-        box_content << ""
+        stream << Box.new(w, "")
       end
 
       # Interword glue can stretch by half and shrink by a third.
@@ -56,13 +51,11 @@ module GangstaWrap
         # penalty.
         # TODO: recognize dashes in all their variants
         while seg = w.scan(/[^-]+-/) # "night-time" --> "<<night->>time"
-          stream << Box.new(@pdf.width_of(seg))
-          box_content << seg
+          stream << Box.new(@pdf.width_of(seg), seg)
           stream << Penalty.new(50, 0, true)
         end
 
-        stream << Box.new(@pdf.width_of(w.rest))
-        box_content << w.rest
+        stream << Box.new(@pdf.width_of(w.rest), w.rest)
         # TODO: add ties (~) or some other way to denote a period that
         # doesn't end a sentence.
         if w.rest =~ /\.$/
@@ -81,7 +74,7 @@ module GangstaWrap
       stream << Glue.new(0, Infinity, 0)
       stream << Penalty.new(-Infinity)
 
-      [stream, box_content]
+      stream
     end
 
   end

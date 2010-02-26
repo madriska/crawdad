@@ -12,12 +12,12 @@ describe "each_legal_breakpoint" do
 
   before(:each) do
     @stream = [
-      @b0=box(100),
+      @b0=box(100, ""),
       @g1=glue(10, 5, 3),
-      @b2=box(100),
+      @b2=box(100, ""),
       @p3=penalty(50),
       @g4=glue(10, 5, 3),
-      @b5=box(100)
+      @b5=box(100, "")
     ]
 
     @para = Paragraph.new(@stream)
@@ -45,12 +45,12 @@ describe "adjustment_ratio" do
 
   before(:each) do
     @stream = [
-      @b0=box(100),
+      @b0=box(100, ""),
       @g1=glue(10, 5, 3),
-      @b2=box(100),
+      @b2=box(100, ""),
       @p3=penalty(50),
       @g4=glue(10, 5, 3),
-      @b5=box(100),
+      @b5=box(100, ""),
       @p6=penalty(-Infinity) # force break
     ]
 

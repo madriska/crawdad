@@ -11,7 +11,7 @@ describe "All items" do
   include GangstaWrap
 
   it "should have a width" do
-    box     = Box.new(12)
+    box     = Box.new(12, '')
     glue    = Glue.new(12, 1, 1)
     penalty = Penalty.new(12, 12)
 

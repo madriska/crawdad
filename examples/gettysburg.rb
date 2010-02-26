@@ -8,13 +8,13 @@
 $:.unshift 'lib'
 require 'gangsta_wrap'
 
-$:.unshift '../prawn/lib'
-require 'prawn/core'
+$:.unshift 'vendor/prawn/lib'
+require 'prawn'
 
 Prawn::Document.generate("gettysburg.pdf") do |pdf|
   line_spacing = pdf.font.height
 
-  stream, box_content = GangstaWrap::PrawnTokenizer.new(pdf).paragraph(<<-END)
+  stream = GangstaWrap::PrawnTokenizer.new(pdf).paragraph(<<-END)
   Fourscore and seven years ago our fathers brought forth
   on this continent a new nation, conceived in liberty, and
   dedicated to the proposition that all men are created equal.
@@ -29,7 +29,6 @@ Prawn::Document.generate("gettysburg.pdf") do |pdf|
 
   [200, 300, 400, 450].each do |width|
     para = GangstaWrap::Paragraph.new(stream, :width => width)
-    words = box_content.each
 
     para.optimum_breakpoints.each_cons(2) do |a, b|
       # skip over glue and penalties at the beginning of each line
@@ -40,8 +39,7 @@ Prawn::Document.generate("gettysburg.pdf") do |pdf|
       stream[first_box...b.position].each do |token|
         case token
         when GangstaWrap::Box
-          word = words.next
-          pdf.draw_text!(word, :at => [x, pdf.cursor])
+          pdf.draw_text!(token.content, :at => [x, pdf.cursor])
           x += token.width
         when GangstaWrap::Glue
           r = b.ratio
