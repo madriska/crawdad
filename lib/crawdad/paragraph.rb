@@ -34,8 +34,10 @@ module Crawdad
     #
     def lines(threshold=5)
       ls = []
-      optimum_breakpoints(threshold).each_cons(2) do |a, b|
-        ls << [@stream[a.position...b.position], b]
+      breakpoints = optimum_breakpoints(threshold)
+      breakpoints.each_cons(2) do |a, b|
+        last = (b == breakpoints[-1]) ? b.position : b.position - 1
+        ls << [@stream[a.position..last], b]
       end
       ls
     end
