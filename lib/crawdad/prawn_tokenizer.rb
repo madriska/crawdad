@@ -22,7 +22,30 @@ module Crawdad
     # Tokenize the given paragraph of text into a stream of items (boxes, glue,
     # and penalties).
     #
+    # +options+:
+    #
+    # +hyphenation+::
+    #   If provided, allow the given text to be hyphenated as needed to best
+    #   fit the available space. Requires the text-hyphen gem. Allowable values:
+    #   an ISO 639 language code (like 'pt'), or +true+ (synonym for 'en_us').
+    # +indent+::
+    #   If specified, indent the first line of the paragraph by the given
+    #   number of PDF points.
+    #
     def paragraph(text, options={})
+      hyphenator = if options[:hyphenation]
+        begin
+          gem 'text-hyphen'
+          require 'text/hyphen'
+        rescue LoadError
+          raise LoadError, ":hyphenation option requires the text-hyphen gem"
+        end
+
+        language = ((lang = options[:hyphenation]) == true) ? 'en_us' : lang
+        @hyphenators ||= {}
+        @hyphenators[language] ||= Text::Hyphen.new(:language => language)
+      end
+
       stream = []
 
       if w = options[:indent]
@@ -51,11 +74,11 @@ module Crawdad
         # penalty.
         # TODO: recognize dashes in all their variants
         while seg = w.scan(/[^-]+-/) # "night-time" --> "<<night->>time"
-          stream << Box.new(@pdf.width_of(seg), seg)
-          stream << Penalty.new(50, 0, true)
+          stream.concat add_word_segment(seg, hyphenator)
         end
 
-        stream << Box.new(@pdf.width_of(w.rest), w.rest)
+        stream.concat(add_word_segment(w.rest, hyphenator))
+
         # TODO: add ties (~) or some other way to denote a period that
         # doesn't end a sentence.
         if w.rest =~ /\.$/
@@ -75,6 +98,20 @@ module Crawdad
       stream << Penalty.new(-Infinity)
 
       stream
+    end
+
+    protected
+
+    # Returns a series of tokens representing the given word. Hyphenates using
+    # the given +hyphenator+, if provided. Appends a zero-width flagged penalty
+    # if the given word ends in a hyphen.
+    #
+    def add_word_segment(word, hyphenator)
+      tokens = []
+      # TODO: hyphenator
+      tokens << Box.new(@pdf.width_of(word), word)
+      tokens << Penalty.new(50, 0, true) if word =~ /-$/
+      tokens
     end
 
   end
