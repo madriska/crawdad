@@ -103,4 +103,15 @@ describe "Prawn tokenizer" do
     forced_break.width.should.be.zero
   end
 
+  it "should insert extra space after sentence-ending periods" do
+    stream = @tokenizer.paragraph("bork bork bork. bork bork bork")
+    normal_glue = stream.detect { |t| t.is_a?(Crawdad::Glue) }
+
+    i = stream.find_index { |t| t.is_a?(Crawdad::Box) && t.content == 'bork.' }
+    sentence_glue = stream[i+1]
+
+    sentence_glue.should.be.a.kind_of(Crawdad::Glue)
+    sentence_glue.width.should.be > normal_glue.width
+  end
+
 end
