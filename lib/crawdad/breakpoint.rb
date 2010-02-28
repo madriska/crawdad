@@ -36,7 +36,7 @@ module Crawdad
 
     # Index of this breakpoint within the sequence of items.
     #
-    attr_reader :position
+    attr_accessor :position
 
     # Number of the line ending at this breakpoint.
     #

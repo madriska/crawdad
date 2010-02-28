@@ -35,6 +35,14 @@ module Crawdad
     def lines(threshold=5)
       ls = []
       breakpoints = optimum_breakpoints(threshold)
+
+      # When we break on penalties, we want them to show up at the *end* of the
+      # line so that we can put hyphens there if needed. So adjust the
+      # breakpoint positions to make that the case.
+      breakpoints.each do |b|
+        b.position += 1 if Penalty === @stream[b.position]
+      end
+
       breakpoints.each_cons(2) do |a, b|
         last = (b == breakpoints[-1]) ? b.position : b.position - 1
         ls << [@stream[a.position..last], b]
