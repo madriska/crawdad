@@ -64,7 +64,7 @@ module Crawdad
 
             if r < -1 || (item.is_a?(Penalty) && item.penalty == -Infinity && 
                           a.position < @stream.length - 1)
-              active_nodes.delete(a)
+              active_nodes.delete_at(ai)
             else
               ai += 1
             end
