@@ -37,7 +37,7 @@ module Crawdad
                                 space_width / 3.0)
 
       # TODO: optimal values for sentence space w/y/z
-      sentence_space_width = space_width * 2.0
+      sentence_space_width = space_width * 1.5
       sentence_glue = Glue.new(sentence_space_width,
                                sentence_space_width / 2.0,
                                sentence_space_width / 3.0)
