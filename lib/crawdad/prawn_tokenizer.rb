@@ -6,6 +6,7 @@
 # This is free software. Please see the LICENSE and COPYING files for details.
 
 require 'strscan'
+require 'enumerator'
 
 module Crawdad
 
@@ -108,8 +109,24 @@ module Crawdad
     #
     def add_word_segment(word, hyphenator)
       tokens = []
-      # TODO: hyphenator
-      tokens << Box.new(@pdf.width_of(word), word)
+
+      if hyphenator
+        hyphen_width = @pdf.width_of('-')
+
+        splits = hyphenator.hyphenate(word)
+        # For each hyphenated segment, add the box with an optional penalty.
+        [0, *splits].each_cons(2) do |a, b|
+          seg = word[a...b]
+          tokens << Box.new(@pdf.width_of(seg), seg)
+          tokens << Penalty.new(50, @pdf.width_of('-'), true)
+        end
+
+        last = word[(splits.last || 0)..-1]
+        tokens << Box.new(@pdf.width_of(last), last)
+      else
+        tokens << Box.new(@pdf.width_of(word), word)
+      end
+
       tokens << Penalty.new(50, 0, true) if word =~ /-$/
       tokens
     end

@@ -105,13 +105,40 @@ describe "Prawn tokenizer" do
 
   it "should insert extra space after sentence-ending periods" do
     stream = @tokenizer.paragraph("bork bork bork. bork bork bork")
-    normal_glue = stream.detect { |t| t.is_a?(Crawdad::Glue) }
+    normal_glue = stream.detect { |t| t.is_a?(Glue) }
 
-    i = stream.find_index { |t| t.is_a?(Crawdad::Box) && t.content == 'bork.' }
+    i = stream.find_index { |t| t.is_a?(Box) && t.content == 'bork.' }
     sentence_glue = stream[i+1]
 
-    sentence_glue.should.be.a.kind_of(Crawdad::Glue)
+    sentence_glue.should.be.a.kind_of(Glue)
     sentence_glue.width.should.be > normal_glue.width
+  end
+
+  describe "with hyphenation" do
+    
+    it "should insert flagged penalties at each hyphenation point" do
+      stream = @tokenizer.paragraph("testing", :hyphenation => true)
+      3.times { stream.pop }
+
+      stream.map { |t| t.class }.should == [Box, Penalty, Box]
+
+      stream[0].content.should == "test"
+      stream[1].width.should == @pdf.width_of('-')
+      stream[1].should.be.flagged
+      stream[2].content.should == "ing"
+    end
+
+    it "should not affect manually hyphenated words" do
+      stream = @tokenizer.paragraph("play-thing", :hyphenation => true)
+      3.times { stream.pop }
+
+      stream.map { |t| t.class }.should == [Box, Penalty, Box]
+      stream[0].content.should == 'play-'
+      stream[1].width.should.be.zero
+      stream[1].should.be.flagged
+      stream[2].content.should == 'thing'
+    end
+
   end
 
 end
