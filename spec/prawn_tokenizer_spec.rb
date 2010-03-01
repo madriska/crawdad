@@ -22,43 +22,41 @@ describe "Prawn tokenizer" do
     indented_stream   = @tokenizer.paragraph("foo", :indent => 12)
 
     # Ensure there is an extra box for the indentation.
-    indented_stream.grep(Box).length.should == 
-      unindented_stream.grep(Box).length + 1
+    indented_stream.select{|x| box?(x)}.length.should == 
+      unindented_stream.select{|x| box?(x)}.length + 1
 
     # Indentation box should be the width requested.
-    indented_stream.first.should.be.a.kind_of(Box)
-    indented_stream.first.width.should == 12
+    indented_stream.first[0].should == :box
+    token_width(indented_stream.first).should == 12
 
     # Box content should have one entry for each of the boxes.
-    unindented_stream[0].content.should == "foo"
-    indented_stream[0].content.should == ""
-    indented_stream[1].content.should == "foo"
+    box_content(unindented_stream[0]).should == "foo"
+    box_content(indented_stream[0]).should == ""
+    box_content(indented_stream[1]).should == "foo"
   end
 
   # (2)
   it "should create boxes for each word, including punctuation" do
     stream = @tokenizer.paragraph("this is a test.")
-    boxes = stream.grep(Box)
+    boxes = stream.select{|x| box?(x)}
 
     boxes.length.should == 4
     boxes.zip(%w[this is a test.]).each do |box, word|
-      box.width.should == @pdf.width_of(word)
+      token_width(box).should == @pdf.width_of(word)
     end
 
-    boxes.map { |b| b.content}.should == %w[this is a test.]
+    boxes.map { |b| box_content(b) }.should == %w[this is a test.]
   end
 
-  # TODO: insert flagged penalties at hyphenation points
-  
   # (3)
   it "should insert glue between words" do
     stream = @tokenizer.paragraph("this is a test.")
     3.times{ stream.pop } # remove finishing elements
-    stream.map{ |i| i.class }.should == [Box, Glue, Box, Glue, Box, Glue, Box]
+    stream.map{ |i| i[0] }.should == [:box, :glue, :box, :glue, :box, :glue, :box]
 
     interword_width = @pdf.width_of(" ")
-    stream.grep(Glue).each do |glue|
-      glue.width.should == interword_width
+    stream.select{|x| x[0] == :glue}.each do |glue|
+      token_width(glue).should == interword_width
     end
   end
 
@@ -66,20 +64,21 @@ describe "Prawn tokenizer" do
   it "should follow explicit hyphens with zero-width flagged penalties" do
     stream = @tokenizer.paragraph("cul-de-sac")
     3.times{ stream.pop } # remove finishing elements
-    stream.map{ |i| i.class }.should == [Box, Penalty, Box, Penalty, Box]
+    stream.map{ |i| i[0] }.should == [:box, :penalty, :box, :penalty, :box]
 
     # check boxes
-    stream[0].width.should == @pdf.width_of("cul-")
-    stream[2].width.should == @pdf.width_of("de-")
-    stream[4].width.should == @pdf.width_of("sac")
+    token_width(stream[0]).should == @pdf.width_of("cul-")
+    token_width(stream[2]).should == @pdf.width_of("de-")
+    token_width(stream[4]).should == @pdf.width_of("sac")
 
-    stream.grep(Box).map { |b| b.content}.should == %w[cul- de- sac]
+    stream.select{|b| box?(b)}.map { |b| box_content(b) }.should == 
+      %w[cul- de- sac]
 
     # check penalties
-    stream[1].width.should.be.zero
-    stream[1].should.be.flagged
-    stream[3].width.should.be.zero
-    stream[3].should.be.flagged
+    token_width(stream[1]).should.be.zero
+    assert penalty_flagged?(stream[1])
+    token_width(stream[3]).should.be.zero
+    assert penalty_flagged?(stream[3])
   end
 
   # (5)
@@ -90,28 +89,28 @@ describe "Prawn tokenizer" do
     finishing_glue = stream.pop
     disallowed_break = stream.pop
     
-    disallowed_break.should.be.a.kind_of(Penalty)
-    disallowed_break.penalty.should == Infinity
+    disallowed_break[0].should == :penalty
+    penalty_penalty(disallowed_break).should == Infinity
 
-    finishing_glue.should.be.a.kind_of(Glue)
-    finishing_glue.width.should.be.zero
-    finishing_glue.stretch.should == Infinity
+    finishing_glue[0].should == :glue
+    token_width(finishing_glue).should.be.zero
+    glue_stretch(finishing_glue).should == Infinity
 
-    forced_break.should.be.a.kind_of(Penalty)
-    forced_break.penalty.should == -Infinity
+    forced_break[0].should == :penalty
+    penalty_penalty(forced_break).should == -Infinity
     # check this, because we will break here for sure
-    forced_break.width.should.be.zero
+    token_width(forced_break).should.be.zero
   end
 
   it "should insert extra space after sentence-ending periods" do
     stream = @tokenizer.paragraph("bork bork bork. bork bork bork")
-    normal_glue = stream.detect { |t| t.is_a?(Glue) }
+    normal_glue = stream.detect { |t| t[0] == :glue }
 
-    i = stream.find_index { |t| t.is_a?(Box) && t.content == 'bork.' }
+    i = stream.find_index { |t| t[0] == :box && box_content(t) == 'bork.' }
     sentence_glue = stream[i+1]
 
-    sentence_glue.should.be.a.kind_of(Glue)
-    sentence_glue.width.should.be > normal_glue.width
+    sentence_glue[0].should == :glue
+    token_width(sentence_glue).should.be > token_width(normal_glue)
   end
 
   describe "with hyphenation" do
@@ -120,23 +119,23 @@ describe "Prawn tokenizer" do
       stream = @tokenizer.paragraph("testing", :hyphenation => true)
       3.times { stream.pop }
 
-      stream.map { |t| t.class }.should == [Box, Penalty, Box]
+      stream.map { |t| t[0] }.should == [:box, :penalty, :box]
 
-      stream[0].content.should == "test"
-      stream[1].width.should == @pdf.width_of('-')
-      stream[1].should.be.flagged
-      stream[2].content.should == "ing"
+      box_content(stream[0]).should == "test"
+      token_width(stream[1]).should == @pdf.width_of('-')
+      assert penalty_flagged?(stream[1])
+      box_content(stream[2]).should == "ing"
     end
 
     it "should not affect manually hyphenated words" do
       stream = @tokenizer.paragraph("play-thing", :hyphenation => true)
       3.times { stream.pop }
 
-      stream.map { |t| t.class }.should == [Box, Penalty, Box]
-      stream[0].content.should == 'play-'
-      stream[1].width.should.be.zero
-      stream[1].should.be.flagged
-      stream[2].content.should == 'thing'
+      stream.map { |t| t[0] }.should == [:box, :penalty, :box]
+      box_content(stream[0]).should == 'play-'
+      token_width(stream[1]).should.be.zero
+      assert penalty_flagged?(stream[1])
+      box_content(stream[2]).should == "thing"
     end
 
   end

@@ -14,6 +14,8 @@ module Crawdad
   #
   class PrawnTokenizer
 
+    include Tokens
+
     # Sets up a tokenizer for the given document (+pdf+).
     #
     def initialize(pdf)
@@ -50,21 +52,21 @@ module Crawdad
       stream = []
 
       if w = options[:indent]
-        stream << Box.new(w, "")
+        stream << box(w, "")
       end
 
       # Interword glue can stretch by half and shrink by a third.
       # TODO: optimal stretch/shrink ratios
       space_width = @pdf.width_of(" ")
-      interword_glue = Glue.new(space_width, 
-                                space_width / 2.0,
-                                space_width / 3.0)
+      interword_glue = glue(space_width, 
+                            space_width / 2.0,
+                            space_width / 3.0)
 
       # TODO: optimal values for sentence space w/y/z
       sentence_space_width = space_width * 1.5
-      sentence_glue = Glue.new(sentence_space_width,
-                               sentence_space_width / 2.0,
-                               sentence_space_width / 3.0)
+      sentence_glue = glue(sentence_space_width,
+                           sentence_space_width / 2.0,
+                           sentence_space_width / 3.0)
 
       # Break paragraph on whitespace.
       # TODO: how should "battle-\nfield" be tokenized?
@@ -90,13 +92,13 @@ module Crawdad
       end
 
       # Remove extra glue at the end.
-      stream.pop if Glue === stream.last
+      stream.pop if stream.last[0] == :glue
 
       # Finish paragraph with a penalty inhibiting a break, finishing glue (to
       # pad out the last line), and a forced break to finish the paragraph.
-      stream << Penalty.new(Infinity)
-      stream << Glue.new(0, Infinity, 0)
-      stream << Penalty.new(-Infinity)
+      stream << penalty(Infinity)
+      stream << glue(0, Infinity, 0)
+      stream << penalty(-Infinity)
 
       stream
     end
@@ -117,17 +119,17 @@ module Crawdad
         # For each hyphenated segment, add the box with an optional penalty.
         [0, *splits].each_cons(2) do |a, b|
           seg = word[a...b]
-          tokens << Box.new(@pdf.width_of(seg), seg)
-          tokens << Penalty.new(50, @pdf.width_of('-'), true)
+          tokens << box(@pdf.width_of(seg), seg)
+          tokens << penalty(50, @pdf.width_of('-'), true)
         end
 
         last = word[(splits.last || 0)..-1]
-        tokens << Box.new(@pdf.width_of(last), last)
+        tokens << box(@pdf.width_of(last), last)
       else
-        tokens << Box.new(@pdf.width_of(word), word)
+        tokens << box(@pdf.width_of(word), word)
       end
 
-      tokens << Penalty.new(50, 0, true) if word =~ /-$/
+      tokens << penalty(50, 0, true) if word =~ /-$/
       tokens
     end
 

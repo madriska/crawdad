@@ -11,9 +11,7 @@ end
 
 require 'crawdad/compatibility'
 
-require 'crawdad/box'
-require 'crawdad/glue'
-require 'crawdad/penalty'
+require 'crawdad/tokens'
 require 'crawdad/breakpoint'
 require 'crawdad/paragraph'
 

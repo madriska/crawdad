@@ -18,7 +18,7 @@ include Crawdad
 
 # for Prawn integration
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), 
-                             %w[.. vendor prawn-core lib])
+                             %w[.. vendor prawn lib])
 require 'prawn'
 
 # A fast instance of Prawn::Document used only for width calculations. We

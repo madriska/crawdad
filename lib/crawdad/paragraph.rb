@@ -8,6 +8,8 @@
 module Crawdad
 
   class Paragraph
+
+    include Tokens
     
     def initialize(stream, options={})
       @stream = stream
@@ -40,7 +42,7 @@ module Crawdad
       # line so that we can put hyphens there if needed. So adjust the
       # breakpoint positions to make that the case.
       breakpoints.each do |b|
-        b.position += 1 if Penalty === @stream[b.position]
+        b.position += 1 if penalty?(@stream[b.position])
       end
 
       breakpoints.each_cons(2) do |a, b|
@@ -70,7 +72,8 @@ module Crawdad
             j = a.line + 1 # current line
             r = adjustment_ratio(a, bi)
 
-            if r < -1 || (item.is_a?(Penalty) && item.penalty == -Infinity && 
+            if r < -1 || (penalty?(item) && 
+                          penalty_penalty(item) == -Infinity && 
                           a.position < @stream.length - 1)
               active_nodes.delete_at(ai)
             else
@@ -145,18 +148,18 @@ module Crawdad
       @total_shrink  = 0
 
       @stream.each_with_index do |item, i|
-        case item
-        when Box
-          @total_width += item.width
-        when Glue
+        case item[0]
+        when :box
+          @total_width += token_width(item)
+        when :glue
           # We can break here if we immediately follow a box.
-          yield(item, i) if Box === @stream[i-1]
-          @total_width   += item.width
-          @total_stretch += item.stretch
-          @total_shrink  += item.shrink
-        when Penalty
+          yield(item, i) if box?(@stream[i-1])
+          @total_width   += token_width(item)
+          @total_stretch += glue_stretch(item)
+          @total_shrink  += glue_shrink(item)
+        when :penalty
           # We can break here unless inhibited by an infinite penalty.
-          yield(item, i) unless item.penalty == Infinity
+          yield(item, i) unless penalty_penalty(item) == Infinity
         else
           raise ArgumentError, "Unknown item: #{item.inspect}"
         end
@@ -177,18 +180,18 @@ module Crawdad
     def adjustment_ratio(node_a, b)
       item_b = @stream[b]
       # Find the width from a to b.
-      width = @total_width - node_a.total_width
+      w = @total_width - node_a.total_width
       # Add penalty width (hyphen) if we are breaking at a penalty
-      width += item_b.width if Penalty === item_b
+      w += token_width(item_b) if penalty?(item_b)
       target_width = line_width(node_a.line + 1)
 
       case
-      when width < target_width
+      when w < target_width
         stretch = @total_stretch - node_a.total_stretch
-        (stretch > 0) ? (target_width - width) / stretch.to_f : Infinity
-      when width > target_width
+        (stretch > 0) ? (target_width - w) / stretch.to_f : Infinity
+      when w > target_width
         shrink = @total_shrink - node_a.total_shrink
-        (shrink > 0) ? (target_width - width) / shrink.to_f : Infinity
+        (shrink > 0) ? (target_width - w) / shrink.to_f : Infinity
       else 0
       end
     end
@@ -207,17 +210,17 @@ module Crawdad
     #
     def calculate_demerits(r, new_item, active_breakpoint)
       d = case
-          when new_item.is_a?(Penalty) && new_item.penalty >= 0
-            (1 + 100*(r.abs ** 3) + new_item.penalty) ** 2
-          when new_item.is_a?(Penalty) && new_item.penalty != -Infinity
-            ((1 + 100*(r.abs ** 3)) ** 2) - (new_item.penalty ** 2)
+          when new_item[0] == :penalty && penalty_penalty(new_item) >= 0
+            (1 + 100*(r.abs ** 3) + penalty_penalty(new_item)) ** 2
+          when new_item[0] == :penalty && penalty_penalty(new_item) != -Infinity
+            ((1 + 100*(r.abs ** 3)) ** 2) - (penalty_penalty(new_item) ** 2)
           else
             (1 + 100*(r.abs ** 3)) ** 2
           end
 
       old_item = @stream[active_breakpoint.position]
-      if old_item.is_a?(Penalty) && old_item.flagged? && 
-         new_item.is_a?(Penalty) && new_item.flagged?
+      if old_item[0] == :penalty && penalty_flagged?(old_item) && 
+         new_item[0] == :penalty && penalty_flagged?(new_item)
         d += @flagged_penalty
       end
 
@@ -279,15 +282,15 @@ module Crawdad
         @total_width, @total_stretch, @total_shrink
       
       @stream[b..-1].each_with_index do |item, i|
-        case item
-        when Box
+        case item[0]
+        when :box
           break
-        when Glue
-          total_width   += item.width
-          total_stretch += item.stretch
-          total_shrink  += item.shrink
-        when Penalty
-          break if item.penalty == -Infinity && i > 0
+        when :glue
+          total_width   += token_width(item)
+          total_stretch += glue_stretch(item)
+          total_shrink  += glue_shrink(item)
+        when :penalty
+          break if penalty_penalty(item) == -Infinity && i > 0
         else
           raise ArgumentError, "Unknown item: #{item.inspect}"
         end
