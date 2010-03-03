@@ -14,7 +14,7 @@ module Crawdad
       builder.include "stdlib.h"
       builder.include "math.h"
 
-      builder.c_raw %q{
+      builder.c_raw <<-'END_C'
         enum token_type { BOX, GLUE, PENALTY };
 
         struct box {
@@ -42,12 +42,13 @@ module Crawdad
           struct glue glue;
           struct penalty penalty;
         } token;
-      }
-        
-      builder.c %q{
-        double _calculate_demerits(double r, token *old_item, token *new_item,
-                                   double flagged_penalty) {
-          double d;
+      END_C
+
+      builder.c <<-'END_C'
+        float _calculate_demerits(token **stream, int old_i, token *new_item, 
+                                   float r, float flagged_penalty) {
+          token *old_item = stream[old_i];
+          float d;
 
           if((new_item->penalty.type == PENALTY) && 
              (new_item->penalty.penalty >= 0)) {
@@ -66,13 +67,14 @@ module Crawdad
 
           return d;
         }
-      }
+      END_C
 
-      builder.c %q{
+      builder.c <<-'END_C'
         double _adjustment_ratio(double tw, double ty, double tz, 
                                  double aw, double ay, double az, 
-                                 double target_width, token *item_b) {
+                                 double target_width, token **stream, int b) {
           double w, y, z; /* w=width y=stretch z=shrink */
+          token *item_b = stream[b];
 
           w = tw - aw; /* Non-adjusted width of the line. */
 
@@ -90,11 +92,10 @@ module Crawdad
             return 0.0;
           }
         }
-      }
+      END_C
 
-      builder.c %q{
-        void _calculate_widths(token **stream, float *tw, float *ty, 
-                               float *tz) {
+      builder.c <<-'END_C'
+        void _calculate_widths(token **stream, float *tw, float *ty, float *tz){
           token **p;
           for(p=stream; *p; p++) {
             switch((*p)->box.type) {
@@ -111,9 +112,9 @@ module Crawdad
             }
           }
         }
-      }
+      END_C
 
-      builder.c %q{
+      builder.c <<-'END_C'
         void inspect_token(token *t) {
           printf("(0x%02lX) ", t);
           switch(t->box.type){
@@ -132,7 +133,7 @@ module Crawdad
               printf("UNKNOWN %d\n", t->box.type);
           }
         }
-      }
+      END_C
     end
 
     def initialize(stream, options={})
@@ -149,30 +150,26 @@ module Crawdad
     end
 
     def calculate_demerits(r, new_item, active_breakpoint)
-      old_item = @stream[active_breakpoint.position]
-      self.class._calculate_demerits(r, old_item, new_item, @flagged_penalty)
+      self.class._calculate_demerits(@stream_ptr, active_breakpoint.position, 
+                                     new_item, r, @flagged_penalty)
     end
 
     def adjustment_ratio(node_a, b)
-      item_b = @stream[b]
       target_width = line_width(node_a.line + 1)
 
       self.class._adjustment_ratio(@total_width, @total_stretch, @total_shrink,
         node_a.total_width, node_a.total_stretch, node_a.total_shrink,
-        target_width, item_b)
+        target_width, @stream_ptr, b)
     end
 
     def calculate_widths(b)
-      tw = FFI::MemoryPointer.new(:float)
-      tw.put_float32(0, @total_width)
-      ty = FFI::MemoryPointer.new(:float)
-      ty.put_float32(0, @total_stretch)
-      tz = FFI::MemoryPointer.new(:float)
-      tz.put_float32(0, @total_shrink)
+      tw = FFI::MemoryPointer.new(:float).put_float32(0, @total_width)
+      ty = FFI::MemoryPointer.new(:float).put_float32(0, @total_stretch)
+      tz = FFI::MemoryPointer.new(:float).put_float32(0, @total_shrink)
 
       _calculate_widths(@stream_ptr[b], tw, ty, tz)
 
-      [tw.read_float, ty.read_float, tz.read_float]
+      [tw.get_float32(0), ty.get_float32(0), tz.get_float32(0)]
     end
 
   end
