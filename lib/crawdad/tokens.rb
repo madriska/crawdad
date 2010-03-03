@@ -3,12 +3,12 @@ module Crawdad
 
   module Tokens
 
-    def box(width, content)
-      [:box, width, content]
+    def token_type(token)
+      token[0]
     end
 
-    def box?(token)
-      token[0] == :box
+    def box(width, content)
+      [:box, width, content]
     end
 
     def box_content(token)
@@ -17,10 +17,6 @@ module Crawdad
     
     def glue(width, stretch, shrink)
       [:glue, width, stretch, shrink]
-    end
-
-    def glue?(token)
-      token[0] == :glue
     end
 
     def glue_stretch(token)
@@ -33,10 +29,6 @@ module Crawdad
 
     def penalty(penalty, width=0, flagged=false)
       [:penalty, width, penalty, flagged]
-    end
-
-    def penalty?(token)
-      token[0] == :penalty
     end
 
     def penalty_penalty(token)

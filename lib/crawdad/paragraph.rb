@@ -42,7 +42,7 @@ module Crawdad
       # line so that we can put hyphens there if needed. So adjust the
       # breakpoint positions to make that the case.
       breakpoints.each do |b|
-        b.position += 1 if penalty?(@stream[b.position])
+        b.position += 1 if token_type(@stream[b.position]) == :penalty
       end
 
       breakpoints.each_cons(2) do |a, b|
@@ -72,7 +72,7 @@ module Crawdad
             j = a.line + 1 # current line
             r = adjustment_ratio(a, bi)
 
-            if r < -1 || (penalty?(item) && 
+            if r < -1 || (token_type(item) == :penalty && 
                           penalty_penalty(item) == -Infinity && 
                           a.position < @stream.length - 1)
               active_nodes.delete_at(ai)
@@ -148,12 +148,12 @@ module Crawdad
       @total_shrink  = 0
 
       @stream.each_with_index do |item, i|
-        case item[0]
+        case token_type(item)
         when :box
           @total_width += token_width(item)
         when :glue
           # We can break here if we immediately follow a box.
-          yield(item, i) if box?(@stream[i-1])
+          yield(item, i) if token_type(@stream[i-1]) == :box
           @total_width   += token_width(item)
           @total_stretch += glue_stretch(item)
           @total_shrink  += glue_shrink(item)
@@ -182,7 +182,7 @@ module Crawdad
       # Find the width from a to b.
       w = @total_width - node_a.total_width
       # Add penalty width (hyphen) if we are breaking at a penalty
-      w += token_width(item_b) if penalty?(item_b)
+      w += token_width(item_b) if token_type(item_b) == :penalty
       target_width = line_width(node_a.line + 1)
 
       case
@@ -210,17 +210,19 @@ module Crawdad
     #
     def calculate_demerits(r, new_item, active_breakpoint)
       d = case
-          when new_item[0] == :penalty && penalty_penalty(new_item) >= 0
+          when token_type(new_item) == :penalty && 
+               penalty_penalty(new_item) >= 0
             (1 + 100*(r.abs ** 3) + penalty_penalty(new_item)) ** 2
-          when new_item[0] == :penalty && penalty_penalty(new_item) != -Infinity
+          when token_type(new_item) == :penalty && 
+               penalty_penalty(new_item) != -Infinity
             ((1 + 100*(r.abs ** 3)) ** 2) - (penalty_penalty(new_item) ** 2)
           else
             (1 + 100*(r.abs ** 3)) ** 2
           end
 
       old_item = @stream[active_breakpoint.position]
-      if old_item[0] == :penalty && penalty_flagged?(old_item) && 
-         new_item[0] == :penalty && penalty_flagged?(new_item)
+      if token_type(old_item) == :penalty && penalty_flagged?(old_item) && 
+         token_type(new_item) == :penalty && penalty_flagged?(new_item)
         d += @flagged_penalty
       end
 
@@ -282,7 +284,7 @@ module Crawdad
         @total_width, @total_stretch, @total_shrink
       
       @stream[b..-1].each_with_index do |item, i|
-        case item[0]
+        case token_type(item)
         when :box
           break
         when :glue

@@ -17,4 +17,4 @@ require 'crawdad/paragraph'
 
 require 'crawdad/prawn_tokenizer'
 
-
+require 'crawdad/ffi'

@@ -56,9 +56,12 @@ describe "adjustment_ratio" do
     @para = Paragraph.new(@stream)
 
     # convenience: sums over entire stream
-    @tw = @stream.inject(0){ |sum, i| sum + (penalty?(i) ? 0 : token_width(i)) }
-    @ty = @stream.select{|x| glue?(x)}.inject(0) { |sum, i| sum + glue_stretch(i) }
-    @tz = @stream.select{|x| glue?(x)}.inject(0) { |sum, i| sum + glue_shrink(i) }
+    @tw = @stream.inject(0){ |sum, i| sum + (token_type(i) == :penalty ? 0 : 
+                                             token_width(i)) }
+    @ty = @stream.select{|x| token_type(x) == :glue }.inject(0) { |sum, i| 
+      sum + glue_stretch(i) }
+    @tz = @stream.select{|x| token_type(x) == :glue }.inject(0) { |sum, i| 
+      sum + glue_shrink(i) }
     @start = Breakpoint.starting_node
   end
 

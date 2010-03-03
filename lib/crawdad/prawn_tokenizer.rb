@@ -92,7 +92,7 @@ module Crawdad
       end
 
       # Remove extra glue at the end.
-      stream.pop if stream.last[0] == :glue
+      stream.pop if token_type(stream.last) == :glue
 
       # Finish paragraph with a penalty inhibiting a break, finishing glue (to
       # pad out the last line), and a forced break to finish the paragraph.

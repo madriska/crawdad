@@ -22,11 +22,11 @@ describe "Prawn tokenizer" do
     indented_stream   = @tokenizer.paragraph("foo", :indent => 12)
 
     # Ensure there is an extra box for the indentation.
-    indented_stream.select{|x| box?(x)}.length.should == 
-      unindented_stream.select{|x| box?(x)}.length + 1
+    indented_stream.select{|x| token_type(x) == :box}.length.should == 
+      unindented_stream.select{|x| token_type(x) == :box}.length + 1
 
     # Indentation box should be the width requested.
-    indented_stream.first[0].should == :box
+    token_type(indented_stream.first).should == :box
     token_width(indented_stream.first).should == 12
 
     # Box content should have one entry for each of the boxes.
@@ -38,7 +38,7 @@ describe "Prawn tokenizer" do
   # (2)
   it "should create boxes for each word, including punctuation" do
     stream = @tokenizer.paragraph("this is a test.")
-    boxes = stream.select{|x| box?(x)}
+    boxes = stream.select{|x| token_type(x) == :box}
 
     boxes.length.should == 4
     boxes.zip(%w[this is a test.]).each do |box, word|
@@ -52,10 +52,11 @@ describe "Prawn tokenizer" do
   it "should insert glue between words" do
     stream = @tokenizer.paragraph("this is a test.")
     3.times{ stream.pop } # remove finishing elements
-    stream.map{ |i| i[0] }.should == [:box, :glue, :box, :glue, :box, :glue, :box]
+    stream.map{ |t| token_type(t) }.should == 
+      [:box, :glue, :box, :glue, :box, :glue, :box]
 
     interword_width = @pdf.width_of(" ")
-    stream.select{|x| x[0] == :glue}.each do |glue|
+    stream.select{|t| token_type(t) == :glue}.each do |glue|
       token_width(glue).should == interword_width
     end
   end
@@ -64,14 +65,16 @@ describe "Prawn tokenizer" do
   it "should follow explicit hyphens with zero-width flagged penalties" do
     stream = @tokenizer.paragraph("cul-de-sac")
     3.times{ stream.pop } # remove finishing elements
-    stream.map{ |i| i[0] }.should == [:box, :penalty, :box, :penalty, :box]
+    stream.map{ |t| token_type(t) }.should == 
+      [:box, :penalty, :box, :penalty, :box]
 
     # check boxes
     token_width(stream[0]).should == @pdf.width_of("cul-")
     token_width(stream[2]).should == @pdf.width_of("de-")
     token_width(stream[4]).should == @pdf.width_of("sac")
 
-    stream.select{|b| box?(b)}.map { |b| box_content(b) }.should == 
+    stream.select{|b| token_type(b) == :box}.map { |b| 
+        box_content(b) }.should == 
       %w[cul- de- sac]
 
     # check penalties
@@ -89,14 +92,14 @@ describe "Prawn tokenizer" do
     finishing_glue = stream.pop
     disallowed_break = stream.pop
     
-    disallowed_break[0].should == :penalty
+    token_type(disallowed_break).should == :penalty
     penalty_penalty(disallowed_break).should == Infinity
 
-    finishing_glue[0].should == :glue
+    token_type(finishing_glue).should == :glue
     token_width(finishing_glue).should.be.zero
     glue_stretch(finishing_glue).should == Infinity
 
-    forced_break[0].should == :penalty
+    token_type(forced_break).should == :penalty
     penalty_penalty(forced_break).should == -Infinity
     # check this, because we will break here for sure
     token_width(forced_break).should.be.zero
@@ -104,12 +107,13 @@ describe "Prawn tokenizer" do
 
   it "should insert extra space after sentence-ending periods" do
     stream = @tokenizer.paragraph("bork bork bork. bork bork bork")
-    normal_glue = stream.detect { |t| t[0] == :glue }
+    normal_glue = stream.detect { |t| token_type(t) == :glue }
 
-    i = stream.find_index { |t| t[0] == :box && box_content(t) == 'bork.' }
+    i = stream.find_index { |t| token_type(t) == :box && 
+      box_content(t) == 'bork.' }
     sentence_glue = stream[i+1]
 
-    sentence_glue[0].should == :glue
+    token_type(sentence_glue).should == :glue
     token_width(sentence_glue).should.be > token_width(normal_glue)
   end
 
@@ -119,7 +123,7 @@ describe "Prawn tokenizer" do
       stream = @tokenizer.paragraph("testing", :hyphenation => true)
       3.times { stream.pop }
 
-      stream.map { |t| t[0] }.should == [:box, :penalty, :box]
+      stream.map { |t| token_type(t) }.should == [:box, :penalty, :box]
 
       box_content(stream[0]).should == "test"
       token_width(stream[1]).should == @pdf.width_of('-')
@@ -131,7 +135,7 @@ describe "Prawn tokenizer" do
       stream = @tokenizer.paragraph("play-thing", :hyphenation => true)
       3.times { stream.pop }
 
-      stream.map { |t| t[0] }.should == [:box, :penalty, :box]
+      stream.map { |t| token_type(t) }.should == [:box, :penalty, :box]
       box_content(stream[0]).should == 'play-'
       token_width(stream[1]).should.be.zero
       assert penalty_flagged?(stream[1])
