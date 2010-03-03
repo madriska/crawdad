@@ -11,21 +11,21 @@ module Crawdad
     end
 
     class Box < FFI::Struct
+      attr_accessor :content
       layout :type,    Type,
-             :width,   :double,
-             :content, :pointer
+             :width,   :double
     end
 
     def box(width, content)
       b = Box.new
-      b[:type]    = :box
-      b[:width]   = width
-      b[:content] = FFI::MemoryPointer.from_string(content)
+      b[:type]  = :box
+      b[:width] = width
+      b.content = content
       b
     end
 
     def box_content(b)
-      b[:content].read_string
+      b.content
     end
 
     class Glue < FFI::Struct

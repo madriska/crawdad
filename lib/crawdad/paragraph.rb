@@ -82,7 +82,7 @@ module Crawdad
 
             if r >= -1 && r <= threshold
               d = calculate_demerits(r, item, a) + a.total_demerits
-              c = fitness_class(r)
+              c = self.class.fitness_class(r)
 
               # Penalize consecutive lines more than one fitness class away from
               # each other.
@@ -232,7 +232,7 @@ module Crawdad
     # Returns a fitness class number (0=tight, 1=normal, 2=loose, 3=very loose),
     # given the adjustment ratio +r+.
     #
-    def fitness_class(r)
+    def self.fitness_class(r)
       case
       when r < -0.5 then 0
       when r <  0.5 then 1
