@@ -3,7 +3,7 @@ CFLAGS=-Wall -O2 -fPIC
 SHARED=-shared
 SOEXT:=.so
 
-objects = paragraph.o
+objects = tokens.o paragraph.o
 headers = tokens.h paragraph.h
 
 ifeq (${OS},Darwin)

@@ -9,6 +9,3 @@ float adjustment_ratio(float tw, float ty, float tz,
 
 void calculate_widths(token *stream[], float *tw, float *ty, float *tz);
 
-void foreach_legal_breakpoint(token *stream[], 
-    void (*fn)(float, float, float));
-
