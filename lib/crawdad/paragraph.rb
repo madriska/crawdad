@@ -13,19 +13,12 @@ module Crawdad
     
     def initialize(stream, options={})
       @stream = stream
-      @line_widths = options[:line_widths]
       @width = options[:width]
       @flagged_penalty = options[:flagged_penalty] || 3000
       @fitness_penalty = options[:fitness_penalty] || 100
     end
 
-    # An optional array of line widths indexed by line number. Can be used to
-    # shape text as desired. Overrides +width+ if provided.
-    #
-    attr_accessor :line_widths
-
-    # Width of the paragraph of text. Can be overridden on a per-line basis with
-    # +line_widths+.
+    # Width of the paragraph of text. 
     #
     attr_accessor :width
 
@@ -183,7 +176,7 @@ module Crawdad
       w = @total_width - node_a.total_width
       # Add penalty width (hyphen) if we are breaking at a penalty
       w += token_width(item_b) if token_type(item_b) == :penalty
-      target_width = line_width(node_a.line + 1)
+      target_width = @width
 
       case
       when w < target_width
@@ -197,13 +190,6 @@ module Crawdad
     end
 
     protected
-
-    # Returns the width of the given line number +l+.
-    #
-    def line_width(l)
-      (@line_widths && @line_widths[l]) || @width || 
-        raise("You must specify either line_widths or width")
-    end
 
     # Returns the demerits assessed to a break before +new_item+ with adjustment
     # ratio +r+, given the provided active breakpoint.
