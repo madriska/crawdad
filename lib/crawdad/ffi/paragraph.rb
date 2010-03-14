@@ -80,11 +80,12 @@ module Crawdad
 
           while a = active_nodes[ai]
             j = a.line + 1 # current line
-            lw = @width || @line_widths[j]
 
+            # TODO: @width below can be replaced by a line-specific width for
+            # line j if desired.
             r = C.adjustment_ratio(@total_width, @total_stretch, @total_shrink,
-              a.total_width, a.total_stretch, a.total_shrink, lw, @stream_ptr,
-              bi)
+              a.total_width, a.total_stretch, a.total_shrink, @width, 
+              @stream_ptr, bi)
 
             if r < -1 || (C.is_penalty(item) &&
                           penalty_penalty(item) == -Infinity && 
