@@ -3,8 +3,28 @@
 #include <math.h>
 
 #include "tokens.h"
+#include "paragraph.h"
 
-float calculate_demerits(token **stream, int old_i, token *new_item, 
+void inspect_token(token *t) {
+  printf("(0x%02lX) ", (unsigned long)t);
+  switch(t->box.type){
+    case BOX:
+      printf("BOX %f\n", t->box.width);
+      break;
+    case GLUE:
+      printf("GLUE %f %f %f\n", t->glue.width, t->glue.stretch, 
+        t->glue.shrink);
+      break;
+    case PENALTY:
+      printf("PENALTY %f %f %s\n", t->penalty.penalty, t->penalty.width,
+        (t->penalty.flagged ? "F" : "-"));
+      break;
+    default:
+      printf("UNKNOWN %d\n", t->box.type);
+  }
+}
+
+float calculate_demerits(token *stream[], int old_i, token *new_item, 
                          float r, float flagged_penalty) {
   token *old_item = stream[old_i];
   float d;
@@ -29,7 +49,7 @@ float calculate_demerits(token **stream, int old_i, token *new_item,
 
 float adjustment_ratio(float tw, float ty, float tz, 
                        float aw, float ay, float az, 
-                       float target_width, token **stream, int b) {
+                       float target_width, token *stream[], int b) {
   float w, y, z; /* w=width y=stretch z=shrink */
   token *item_b = stream[b];
 
@@ -50,40 +70,27 @@ float adjustment_ratio(float tw, float ty, float tz,
   }
 }
 
-void calculate_widths(token **stream, float *tw, float *ty, float *tz){
-  token **p;
-  for(p=stream; *p; p++) {
-    switch((*p)->box.type) {
+void calculate_widths(token *stream[], float *tw, float *ty, float *tz){
+  int i;
+  token *p;
+  for(i=0; (p = stream[i]); i++) {
+    switch(p->box.type) {
       case BOX:
         return;
       case GLUE:
-        *tw += (*p)->glue.width;
-        *ty += (*p)->glue.stretch;
-        *tz += (*p)->glue.shrink;
+        *tw += p->glue.width;
+        *ty += p->glue.stretch;
+        *tz += p->glue.shrink;
         break;
       case PENALTY:
-        if(((*p)->penalty.penalty == -INFINITY) && (p != stream))
+        if((p->penalty.penalty == -INFINITY) && (i > 0))
           return;
     }
   }
 }
 
-void inspect_token(token *t) {
-  printf("(0x%02lX) ", t);
-  switch(t->box.type){
-    case BOX:
-      printf("BOX %f\n", t->box.width);
-      break;
-    case GLUE:
-      printf("GLUE %f %f %f\n", t->glue.width, t->glue.stretch, 
-        t->glue.shrink);
-      break;
-    case PENALTY:
-      printf("PENALTY %f %f %s\n", t->penalty.penalty, t->penalty.width,
-        (t->penalty.flagged ? "F" : "-"));
-      break;
-    default:
-      printf("UNKNOWN %d\n", t->box.type);
-  }
+void foreach_legal_breakpoint(token *stream[], 
+    void (*fn)(float, float, float)) {
+  /* TODO */
 }
 

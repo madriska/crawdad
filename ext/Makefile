@@ -4,7 +4,7 @@ SHARED=-shared
 SOEXT:=.so
 
 objects = paragraph.o
-headers = tokens.h
+headers = tokens.h paragraph.h
 
 ifeq (${OS},Darwin)
   SHARED = -dynamiclib
