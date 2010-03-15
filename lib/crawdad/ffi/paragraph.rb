@@ -7,7 +7,16 @@ module Crawdad
 
     module C
       extend FFI::Library
-      ffi_lib "ext/crawdad.bundle"
+      ffi_lib ["ext/crawdad.bundle", "ext/crawdad.so"]
+
+      attach_function :make_box, [:float, :string], :pointer
+      attach_function :make_glue, [:float, :float, :float], :pointer
+      attach_function :make_penalty, [:float, :float, :bool], :pointer
+
+      attach_function :token_type, [:pointer], :int
+      attach_function :is_box, [:pointer], :bool
+      attach_function :is_glue, [:pointer], :bool
+      attach_function :is_penalty, [:pointer], :bool
 
       attach_function :calculate_demerits, 
         [:pointer, :int, :pointer, :float, :float], :float
@@ -20,11 +29,6 @@ module Crawdad
         [:pointer, :pointer, :pointer, :pointer], :void
 
       attach_function :inspect_token, [:pointer], :void
-
-      attach_function :token_type, [:pointer], :int
-      attach_function :is_box, [:pointer], :bool
-      attach_function :is_glue, [:pointer], :bool
-      attach_function :is_penalty, [:pointer], :bool
     end
 
     def initialize(stream, options={})

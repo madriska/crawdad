@@ -5,43 +5,34 @@ module Crawdad
     extend FFI::Library
 
     Type = enum(:box, :glue, :penalty)
-
+    
     def token_type(token)
       token[:type]
     end
 
     class Box < FFI::Struct
-      attr_accessor :content
       layout :type,    Type,
-             :width,   :double
+             :width,   :float,
+             :content, :string
     end
 
     def box(width, content)
-      b = Box.new
-      b[:type]  = :box
-      b[:width] = width
-      b.content = content
-      b
+      Box.new(Crawdad::Paragraph::C.make_box(width, content))
     end
 
     def box_content(b)
-      b.content
+      b[:content]
     end
 
     class Glue < FFI::Struct
       layout :type,    Type,
-             :width,   :double,
-             :stretch, :double,
-             :shrink,  :double
+             :width,   :float,
+             :stretch, :float,
+             :shrink,  :float
     end
 
     def glue(width, stretch, shrink)
-      g = Glue.new
-      g[:type]    = :glue
-      g[:width]   = width
-      g[:stretch] = stretch
-      g[:shrink]  = shrink
-      g
+      Glue.new(Crawdad::Paragraph::C.make_glue(width, stretch, shrink))
     end
 
     def glue_stretch(glue)
@@ -54,24 +45,20 @@ module Crawdad
 
     class Penalty < FFI::Struct
       layout :type,    Type,
-             :width,   :double,
-             :penalty, :double,
+             :width,   :float,
+             :penalty, :float,
              :flagged, :int
     end
     
     def penalty(penalty, width=0.0, flagged=false)
-      p = Penalty.new
-      p[:type]    = :penalty
-      p[:width]   = width
-      p[:penalty] = penalty
-      p[:flagged] = flagged ? 1 : 0
-      p
+      Penalty.new(Crawdad::Paragraph::C.make_penalty(width, penalty, flagged))
     end
 
     def penalty_penalty(p)
       p[:penalty]
     end
 
+    # TODO: this might return true/false. problem?
     def penalty_flagged?(p)
       p[:flagged] != 0
     end
