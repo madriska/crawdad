@@ -29,5 +29,13 @@ typedef union {
   struct penalty penalty;
 } token;
 
+int token_type(token *);
+
+int is_box(token *);
+
+int is_penalty(token *);
+
+int is_glue(token *);
+
 #endif
 

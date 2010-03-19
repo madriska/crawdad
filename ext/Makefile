@@ -1,10 +1,11 @@
 OS:=$(shell uname | sed 's/[-_].*//')
 CFLAGS=-Wall -O2 -fPIC
+#CFLAGS=-Wall -fPIC -g
 SHARED=-shared
 SOEXT:=.so
 
 objects = tokens.o paragraph.o
-headers = tokens.h paragraph.h
+headers = tokens.h paragraph.h breakpoint.h
 
 ifeq (${OS},Darwin)
   SHARED = -dynamiclib
@@ -14,11 +15,11 @@ endif
 all: crawdad$(SOEXT)
 
 crawdad$(SOEXT): $(objects)
-	gcc $(SHARED) -o crawdad$(SOEXT) $(objects)
+	$(CC) $(SHARED) -o crawdad$(SOEXT) $(objects)
 
 %.o: %.c $(headers)
-	gcc -c -o $@ $< $(CFLAGS)
+	$(CC) -c -o $@ $< $(CFLAGS)
 
 clean:
-	rm *.o *.$(SOEXT)
+	rm *.o *$(SOEXT)
 

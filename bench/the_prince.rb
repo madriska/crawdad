@@ -5,7 +5,7 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), %w[.. vendor prawn lib]))
 require "prawn"
 require "benchmark"
 
-require_relative 'the_prince/documents'
+require "#{File.dirname(__FILE__)}/the_prince/documents"
 
 Benchmark.bm(10) do |bm|
 

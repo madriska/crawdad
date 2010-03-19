@@ -73,6 +73,10 @@ module Crawdad
     #
     attr_reader :previous
 
+    def inspect
+      "#<Breakpoint position=#{@position} ratio=#{@ratio}>"
+    end
+
   end
 
 end
