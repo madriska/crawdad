@@ -7,7 +7,9 @@ module Crawdad
 
     module C
       extend FFI::Library
-      ffi_lib ["ext/crawdad/crawdad.bundle", "ext/crawdad/crawdad.so"]
+      Base = File.expand_path(File.dirname(__FILE__) + "/../../..")
+      ffi_lib ["#{Base}/ext/crawdad/crawdad.bundle", 
+        "#{Base}/ext/crawdad/crawdad.so"]
 
       attach_function :make_box, [:float, :string], :pointer
       attach_function :make_glue, [:float, :float, :float], :pointer
