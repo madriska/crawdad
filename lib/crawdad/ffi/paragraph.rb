@@ -7,7 +7,7 @@ module Crawdad
 
     module C
       extend FFI::Library
-      ffi_lib ["ext/crawdad.bundle", "ext/crawdad.so"]
+      ffi_lib ["ext/crawdad/crawdad.bundle", "ext/crawdad/crawdad.so"]
 
       attach_function :make_box, [:float, :string], :pointer
       attach_function :make_glue, [:float, :float, :float], :pointer

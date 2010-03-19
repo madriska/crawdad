@@ -259,8 +259,6 @@ void main_loop(token *stream[], int i, float tw, float ty, float tz,
 breakpoint *populate_active_nodes(token *stream[], float width, 
     float threshold) {
   breakpoint *bp, *min_node;
-  token *t;
-  int size, i;
 
   active_nodes = make_starting_breakpoint();
   foreach_legal_breakpoint(stream, width, threshold, main_loop);
