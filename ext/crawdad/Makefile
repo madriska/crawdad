@@ -1,6 +1,6 @@
 OS:=$(shell uname | sed 's/[-_].*//')
 CFLAGS=-Wall -O2 -fPIC
-#CFLAGS=-Wall -fPIC -g
+#CFLAGS=-Wall -fPIC -ggdb
 SHARED=-shared
 SOEXT:=.so
 
