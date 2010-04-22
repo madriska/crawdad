@@ -14,6 +14,10 @@ module Crawdad
       layout :type,    Type,
              :width,   :float,
              :content, :string
+
+      def inspect
+        "(box %.2f %s)" % [self[:width], self[:content].inspect]
+      end
     end
 
     def box(width, content)
@@ -29,6 +33,10 @@ module Crawdad
              :width,   :float,
              :stretch, :float,
              :shrink,  :float
+
+      def inspect
+        "(glue %.2f %.2f %.2f)" % [self[:width], self[:stretch], self[:shrink]]
+      end
     end
 
     def glue(width, stretch, shrink)
@@ -48,6 +56,11 @@ module Crawdad
              :width,   :float,
              :penalty, :float,
              :flagged, :int
+
+      def inspect
+        "(penalty %.2f %.2f#{" F" if self[:flagged] == 1})" %
+          [self[:penalty], self[:width]]
+      end
     end
     
     def penalty(penalty, width=0.0, flagged=false)
