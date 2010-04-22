@@ -36,7 +36,15 @@ module Crawdad
     #   number of PDF points.
     #
     def paragraph(text, options={})
+      @align = options[:align] || :justify
+
       hyphenator = if options[:hyphenation]
+        # Box-glue-penalty model does not easily permit optional hyphenation
+        # with the construction we use for centered text.
+        if @align == :center
+          raise ArgumentError, "Hyphenation is not supported with centered text"
+        end
+
         begin
           gem 'text-hyphen'
           require 'text/hyphen'
@@ -49,78 +57,125 @@ module Crawdad
         @hyphenators[language] ||= Text::Hyphen.new(:language => language)
       end
 
-      stream = []
-
-      if w = options[:indent]
-        stream << box(w, "")
-      end
-
-      # Interword glue can stretch by half and shrink by a third.
-      # TODO: optimal stretch/shrink ratios
-      space_width = @pdf.width_of(" ")
-      interword_glue = glue(space_width, 
-                            space_width / 2.0,
-                            space_width / 3.0)
-
-      # TODO: optimal values for sentence space w/y/z
-      sentence_space_width = space_width * 1.5
-      sentence_glue = glue(sentence_space_width,
-                           sentence_space_width / 2.0,
-                           sentence_space_width / 3.0)
+      stream = starting_tokens(options[:indent])
 
       # Break paragraph on whitespace.
       # TODO: how should "battle-\nfield" be tokenized?
-      text.strip.split(/\s+/).each do |word|
+      words = text.strip.split(/\s+/)
+      
+      words.each_with_index do |word, i|
         w = StringScanner.new(word)
 
         # For hyphenated words, follow each hyphen by a zero-width flagged
         # penalty.
-        # TODO: recognize dashes in all their variants
         while seg = w.scan(/[^-]+-/) # "night-time" --> "<<night->>time"
-          stream.concat add_word_segment(seg, hyphenator)
+          stream += word_segment(seg, hyphenator)
         end
 
-        stream.concat(add_word_segment(w.rest, hyphenator))
-
-        # TODO: add ties (~) or some other way to denote a period that
-        # doesn't end a sentence.
-        if w.rest =~ /\.$/
-          stream << sentence_glue
-        else
-          stream << interword_glue
+        stream += word_segment(w.rest, hyphenator)
+        
+        unless i == words.length - 1
+          stream += interword_tokens
         end
       end
 
-      # Remove extra glue at the end.
-      stream.pop if token_type(stream.last) == :glue
-
-      # Finish paragraph with a penalty inhibiting a break, finishing glue (to
-      # pad out the last line), and a forced break to finish the paragraph.
-      stream << penalty(Infinity)
-      stream << glue(0, Infinity, 0)
-      stream << penalty(-Infinity)
+      # Add needed tokens to finish off the paragraph.
+      stream += finishing_tokens
 
       stream
     end
 
     protected
 
-    # Returns a series of tokens representing the given word. Hyphenates using
-    # the given +hyphenator+, if provided. Appends a zero-width flagged penalty
-    # if the given word ends in a hyphen.
+    # Width of one space.
     #
-    def add_word_segment(word, hyphenator)
+    def space
+      @space ||= @pdf.width_of(" ")
+    end
+
+    # Tokens used to start a paragraph. Accepts one argument, +indent_width+,
+    # the amount by which to indent the first line, which only really makes
+    # sense for justified or ragged-left text.
+    #
+    def starting_tokens(indent_width)
+      if @align == :center
+        [box(0, ""), glue(0, 3*space, 0)]
+      elsif indent_width
+        [box(w, "")]
+      else
+        []
+      end
+    end
+
+    # Tokens used between words in a sentence. This depends on @align; the
+    # box-glue-penalty model is flexible enough to accommodate ragged (right or
+    # left), centered, or justified text.
+    #
+    # See Digital Typography pp. 93-95 for details.
+    #
+    def interword_tokens
+      case @align
+      when :justify
+        [glue(space, space / 2.0, space / 3.0)]
+      when :center
+        [glue(0, 3*space, 0), penalty(0), glue(space, -6*space, 0), box(0, ""),
+          penalty(Infinity), glue(0, 3*space, 0)]
+      else # :right, :left
+        [glue(0, 3*space, 0), penalty(0), glue(space, -3*space, 0)]
+      end
+    end
+
+    # Tokens representing a possible hyphenation point.
+    #
+    def optional_hyphen
+      hyphen = @pdf.width_of('-')
+
+      if @align == :justify
+        [penalty(50, hyphen, true)]
+      else # :left or :right (:center is incompatible with hyphenation)
+        # Hyphens cost 10 times more in unjustified text because we can usually
+        # do better to avoid them.
+        [penalty(Infinity), glue(0, 3*space, 0), penalty(500, hyphen, true), 
+          glue(0, -3*space, 0)]
+      end
+    end
+
+    # Tokens to finish out a paragraph -- pad out the last line if needed, and
+    # force a break.
+    #
+    def finishing_tokens
+      if @align == :center
+        [glue(0, 3*space, 0), penalty(-Infinity)]
+      else
+        [penalty(Infinity), glue(0, Infinity, 0), penalty(-Infinity)]
+      end
+    end
+
+    # Returns tokens representing the given word. Hyphenates using the given
+    # +hyphenator+, if provided. Appends a zero-width flagged penalty if the
+    # given word ends in a hyphen.
+    #
+    def word_segment(word, hyphenator)
       tokens = []
 
       if hyphenator
-        hyphen_width = @pdf.width_of('-')
+        begin
+          splits = hyphenator.hyphenate(word)
+        rescue NoMethodError => e
+          if e.message =~ /each_with_index/
+            # known issue wth text-hyphen 1.0.0:
+            # http://rubyforge.org/tracker/index.php?func=detail&aid=28128&group_id=294&atid=1195
+            splits = []
+          else
+            raise
+          end
+        end
 
-        splits = hyphenator.hyphenate(word)
-        # For each hyphenated segment, add the box with an optional penalty.
+        # For each hyphenated segment, add the box with an optional hyphen.
         [0, *splits].each_cons(2) do |a, b|
           seg = word[a...b]
           tokens << box(@pdf.width_of(seg), seg)
-          tokens << penalty(50, @pdf.width_of('-'), true)
+          tokens += optional_hyphen
         end
 
         last = word[(splits.last || 0)..-1]
