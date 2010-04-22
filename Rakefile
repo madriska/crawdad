@@ -27,29 +27,7 @@ Rake::RDocTask.new do |rdoc|
   rdoc.title    = "Crawdad Documentation"
 end     
 
-spec = Gem::Specification.new do |spec|
-  spec.name = 'crawdad'
-  spec.version = CRAWDAD_VERSION
-  spec.platform = Gem::Platform::RUBY
-  spec.summary = "Knuth-Plass linebreaking for Ruby"
-  spec.files = FileList["lib/**/**/*"] + FileList["ext/crawdad/*"]
-  spec.require_paths << 'ext'
-
-  binaries = FileList['ext/crawdad/*.bundle', 'ext/crawdad/*.so']
-  spec.extensions << 'Rakefile'
-  spec.files += binaries.to_a
-
-  spec.has_rdoc = true
-  spec.rdoc_options << '--title' << 'Crawdad Documentation' << '-q'
-  spec.author = 'Brad Ediger'
-  spec.email = 'brad.ediger@madriska.com'
-  spec.homepage = 'http://github.com/madriska/crawdad'
-  spec.description = <<END_DESC
-  Crawdad is an implementation of Knuth-Plass linebreaking (justification)
-  for Ruby.
-END_DESC
-end
-
+spec = Gem::Specification.load("crawdad.gemspec")
 Rake::GemPackageTask.new(spec) do |pkg|
   pkg.need_tar = true
 end
