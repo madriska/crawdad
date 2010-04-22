@@ -22,9 +22,6 @@ http://www.bramstein.com/projects/typeset/
 
 ### Short-Term
 
-* The Prawn drawing interface needs to be moved out of user code and into
-  the library itself.
-
 * Collect all of our constants and magic numbers and expose them somewhat to
   the user. Survey other software (TeX?) to harvest good starting values for
   these parameters.
@@ -35,14 +32,9 @@ http://www.bramstein.com/projects/typeset/
 * Implement the looseness parameter q (algorithm "Choose the appropriate
   active node", Digital Typography p. 120).
 
-* Add specs around the "god method" (`Paragraph#optimum_breakpoints`) and
-  start to refactor it.
-
 ### Long-Term
 
 * Bring this into Prawn, and integrate (if possible) with the Text::Box API.
-
-* Ragged-right/left/center alignment.
 
 * The tokenizer could be smarter; it should recognize more than just
   low-ASCII hyphens as hyphens / dashes, and it can get confused when
@@ -50,9 +42,6 @@ http://www.bramstein.com/projects/typeset/
 
 * Automatically relax the thresholds when the constraints cannot be
   satisfied? Or we could look into TeX's two-pass method (pp. 121-122).
-
-* We don't hyphenate yet. That's another project altogether, but it won't be
-  difficult to integrate.
 
 ## Acknowledgements
 

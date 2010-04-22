@@ -1,0 +1,13 @@
+= Version 0.1.0 (April 22, 2010)
+
+* Add support for centered, ragged-right, and ragged-left text.
+
+* Work around an issue with hyphenating some words like "to" using
+text-hyphen.
+
+* Fix segfault when a token stream starts with glue.
+
+
+= Version 0.0.1 (March 19, 2010)
+
+* Initial release.

@@ -4,10 +4,10 @@ require 'rake/testtask'
 require 'rake/rdoctask'
 require 'rake/gempackagetask'
 
-CRAWDAD_VERSION = '0.0.1'
-
+# Build must be the default task, to fake out using a Makefile to build a
+# non-Ruby extension with Rubygems. There's probably an easier way, but I can't
+# find it.
 task :default => [:build]
-
 task :build do
   system "make -Cext/crawdad"
 end
