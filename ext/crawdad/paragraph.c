@@ -107,7 +107,7 @@ void foreach_legal_breakpoint(token *stream[], float width, float threshold,
         tw += t->box.width;
         break;
       case GLUE:
-        if(stream[i-1]->box.type == BOX)
+        if((i > 0) && (stream[i-1]->box.type == BOX))
           fn(stream, i, tw, ty, tz, width, threshold);
         tw += t->glue.width;
         ty += t->glue.stretch;
