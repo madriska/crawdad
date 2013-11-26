@@ -1,3 +1,5 @@
+require 'rake'
+
 Gem::Specification.new do |spec|
   spec.name = 'crawdad'
   spec.version = '0.1.0'
@@ -20,5 +22,11 @@ Gem::Specification.new do |spec|
   Crawdad is an implementation of Knuth-Plass linebreaking (justification)
   for Ruby.
 END_DESC
-end
 
+  spec.add_runtime_dependency      "ffi",          "~> 1.9.3"
+  spec.add_runtime_dependency      "prawn",        "~> 0.12.0"
+  spec.add_runtime_dependency      "text-hyphen",  "~> 1.4.1"
+
+  spec.add_development_dependency  "mocha",        "~> 0.14.0"
+  spec.add_development_dependency  "rspec",        "~> 2.14.1"
+end

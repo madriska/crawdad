@@ -8,8 +8,7 @@
 puts "Running on Ruby version: #{RUBY_VERSION}"
 
 require "rubygems"
-require "test/spec"                                                
-require "mocha"
+require "mocha/api"
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib') 
 require "crawdad"
 
@@ -30,4 +29,3 @@ CachedWidthDocument = (Class.new(Prawn::Document) do
     @width_cache[[text, options]] ||= super
   end
 end).new
-

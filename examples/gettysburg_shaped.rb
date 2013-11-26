@@ -11,6 +11,10 @@ require 'crawdad'
 $:.unshift 'vendor/prawn/lib'
 require 'prawn'
 
+require 'crawdad/ffi'
+require 'crawdad/ffi/tokens'
+require 'crawdad/native'
+
 Prawn::Document.generate("gettysburg_shaped.pdf") do |pdf|
   line_spacing = pdf.font.height
 

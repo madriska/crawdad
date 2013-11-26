@@ -6,6 +6,7 @@
 # This is free software. Please see the LICENSE and COPYING files for details.
 
 require File.join(File.expand_path(File.dirname(__FILE__)), "spec_helper")
+require 'crawdad/prawn_tokenizer'
 
 describe "Prawn tokenizer" do
 
@@ -78,10 +79,10 @@ describe "Prawn tokenizer" do
       %w[cul- de- sac]
 
     # check penalties
-    token_width(stream[1]).should.be.zero
-    assert penalty_flagged?(stream[1])
-    token_width(stream[3]).should.be.zero
-    assert penalty_flagged?(stream[3])
+    token_width(stream[1]).should be(0)
+    penalty_flagged?(stream[1]).should be
+    token_width(stream[3]).should be(0)
+    penalty_flagged?(stream[3]).should be
   end
 
   # (5)
@@ -96,13 +97,13 @@ describe "Prawn tokenizer" do
     penalty_penalty(disallowed_break).should == Infinity
 
     token_type(finishing_glue).should == :glue
-    token_width(finishing_glue).should.be.zero
+    token_width(finishing_glue).should be(0)
     glue_stretch(finishing_glue).should == Infinity
 
     token_type(forced_break).should == :penalty
     penalty_penalty(forced_break).should == -Infinity
     # check this, because we will break here for sure
-    token_width(forced_break).should.be.zero
+    token_width(forced_break).should be(0)
   end
 
   it "should insert extra space after sentence-ending periods" do
@@ -114,7 +115,7 @@ describe "Prawn tokenizer" do
     sentence_glue = stream[i+1]
 
     token_type(sentence_glue).should == :glue
-    token_width(sentence_glue).should.be > token_width(normal_glue)
+    token_width(sentence_glue).should be > token_width(normal_glue)
   end
 
   describe "with hyphenation" do
@@ -127,7 +128,7 @@ describe "Prawn tokenizer" do
 
       box_content(stream[0]).should == "test"
       token_width(stream[1]).should == @pdf.width_of('-')
-      assert penalty_flagged?(stream[1])
+      penalty_flagged?(stream[1]).should be
       box_content(stream[2]).should == "ing"
     end
 
@@ -137,8 +138,8 @@ describe "Prawn tokenizer" do
 
       stream.map { |t| token_type(t) }.should == [:box, :penalty, :box]
       box_content(stream[0]).should == 'play-'
-      token_width(stream[1]).should.be.zero
-      assert penalty_flagged?(stream[1])
+      token_width(stream[1]).should be(0)
+      penalty_flagged?(stream[1]).should be
       box_content(stream[2]).should == "thing"
     end
 

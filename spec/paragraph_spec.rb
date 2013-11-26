@@ -68,7 +68,7 @@ describe "adjustment_ratio" do
   it "should be zero for a perfect fit (no adjustment needed)" do
     @para.width = @tw
     @para.optimum_breakpoints
-    @para.adjustment_ratio(@start, 6).should.be.zero
+    @para.adjustment_ratio(@start, 6).should be(0)
   end
 
   it "should be positive when stretching, proportional to available stretch" do
@@ -84,4 +84,3 @@ describe "adjustment_ratio" do
   end
 
 end
-
