@@ -6,8 +6,13 @@
 # This is free software. Please see the LICENSE and COPYING files for details.
 
 $:.unshift 'lib'
+require 'prawn'
 require 'crawdad'
 
+require 'crawdad/ffi'
+require 'crawdad/ffi/tokens'
+require 'crawdad/native'
+require 'text/hyphen'
 $:.unshift 'vendor/prawn/lib'
 require 'prawn'
 
@@ -32,15 +37,15 @@ Prawn::Document.generate("gettysburg.pdf") do |pdf|
 
     para.lines.each do |tokens, breakpoint|
       # skip over glue and penalties at the beginning of each line
-      tokens.shift until Crawdad::Box === tokens.first
+      tokens.shift until Crawdad::Tokens::Box === tokens.first
 
       x = 0
       tokens.each do |token|
         case token
-        when Crawdad::Box
+        when Crawdad::Tokens::Box
           pdf.draw_text!(token.content, :at => [x, pdf.cursor])
           x += token.width
-        when Crawdad::Glue
+        when Crawdad::Tokens::Glue
           r = breakpoint.ratio
           w = case
                when r > 0
@@ -50,7 +55,7 @@ Prawn::Document.generate("gettysburg.pdf") do |pdf|
                else token.width
                end
           x += w
-        when Crawdad::Penalty
+        when Crawdad::Tokens::Penalty
           # TODO: add a hyphen when we break at a flagged penalty
         end
       end
