@@ -27,6 +27,6 @@ END_DESC
   spec.add_runtime_dependency      "prawn",        "~> 0.12.0"
   spec.add_runtime_dependency      "text-hyphen",  "~> 1.4.1"
 
-  spec.add_development_dependency  "mocha",        "~> 0.14.0"
-  spec.add_development_dependency  "rspec",        "~> 2.14.1"
+  spec.add_development_dependency  "mocha"
+  spec.add_development_dependency  "rspec"
 end
